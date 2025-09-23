@@ -1,6 +1,6 @@
 # toolkit
 
-## toolkit
+## baraffe_isochrone.py
 ages, masses, data_dict = parse_track_file("COND03_models.txt")
 interps = build_interpolators(ages, masses, data_dict)
 #
