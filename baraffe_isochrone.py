@@ -1,3 +1,16 @@
+# TO RUN THIS FILE YOU SHOULD USE THE BELOW CODE. This will interpolate T_eff and logg from an input age and mass using the COND03_models.txt
+#
+# This is from this paper: Baraffe, Chabrier, Barman, Allard, Hauschildt, 2003, A&A, accepted "Evolutionary models for 
+# cool brown dwarfs and extrasolar giant planets. The case of HD 209458"
+#
+# CODE TO RUN:
+#
+# ages, masses, data_dict = parse_track_file("COND03_models.txt")
+# interps = build_interpolators(ages, masses, data_dict)
+# Teff_val = interps["Teff"](([5.1, 5.3]))  # 5.1 Myr, 5.3 Mjup
+# logg_val = interps["g"](([5.1, 5.3]))
+# print(Teff_val,logg_val)
+
 import numpy as np
 from scipy.interpolate import RegularGridInterpolator
 
