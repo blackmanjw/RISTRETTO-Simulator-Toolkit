@@ -21,6 +21,7 @@ MSUN_TO_MJUP = 1047.3486
 def parse_track_file(filename):
     """
     Parse stellar evolution track file into structured arrays.
+    Handles both header styles (with or without '!').
     Returns:
         ages (array, Myr), masses (array, Mjup), data_dict (dict of 2D arrays)
     """
@@ -37,30 +38,31 @@ def parse_track_file(filename):
             if not line:
                 continue
 
-            # Detect new age block
-            if line.startswith("t (Gyr)"):
+            # Detect new age block (allow for '!  t (Gyr)' or 't (Gyr)')
+            if line.lstrip("!").strip().startswith("t (Gyr)"):
                 current_age = float(line.split('=')[1]) * 1000.0  # convert Gyr -> Myr
                 ages.append(current_age)
                 mass_grid.append([])
                 continue
 
-            # Skip header lines
-            if line.startswith("M/Ms"):
-                columns = line.split()
+            # Detect column header (allow with or without '!')
+            if line.lstrip("!").strip().startswith("M/Ms"):
+                columns = [c.strip() for c in line.replace("!", "").split()]
                 # Initialize storage for each column
                 for col in columns:
                     if col not in data_blocks:
                         data_blocks[col] = []
                 continue
 
-            # Parse numerical row
-            parts = line.split()
-            if len(parts) == len(columns):
-                row = {col: float(val) for col, val in zip(columns, parts)}
-                mass_val = row["M/Ms"] * MSUN_TO_MJUP  # convert Msun -> Mjup
-                mass_grid[-1].append(mass_val)
-                for col, val in row.items():
-                    data_blocks[col].append(val)
+            # Parse numerical row (only if we already know columns)
+            if columns and not line.startswith("!"):
+                parts = line.split()
+                if len(parts) == len(columns):
+                    row = {col: float(val) for col, val in zip(columns, parts)}
+                    mass_val = row["M/Ms"] * MSUN_TO_MJUP  # convert Msun -> Mjup
+                    mass_grid[-1].append(mass_val)
+                    for col, val in row.items():
+                        data_blocks[col].append(val)
 
     # Convert to arrays
     ages = np.array(ages)
@@ -102,11 +104,23 @@ def get_params(interpolators, age, mass, columns=("Teff", "g")):
     Returns dict with requested columns.
     """
     point = np.array([age, mass])
-    return {col: float(interpolators[col](point)) for col in columns}
+    result = {}
+    for col in columns:
+        if col not in interpolators:
+            available = ", ".join(interpolators.keys())
+            raise KeyError(f"Column '{col}' not found. Available columns: {available}")
+        result[col] = float(interpolators[col](point).item())
+    return result
 
 
 # Example usage:
-# ages, masses, data_dict = parse_track_file("track.dat")
+# ages, masses, data_dict = parse_track_file("track2.dat")
 # interps = build_interpolators(ages, masses, data_dict)
-# result = get_params(interps, 5.1, 5.3)  # one line query
-# print(result)  # {"Teff": ..., "g": ...}
+# result = get_params(interps, 1.0, 15.0, columns=("Teff", "g", "R/Rs"))
+# print(result)
+
+# Example usage:
+# ages, masses, data_dict = parse_track_file("track2.dat")
+# interps = build_interpolators(ages, masses, data_dict)
+# result = get_params(interps, 7.5, 735)  # one line query
+# print(result)
