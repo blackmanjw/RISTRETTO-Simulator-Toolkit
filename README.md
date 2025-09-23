@@ -1,9 +1,5 @@
 # toolkit
 
 ## baraffe_isochrone.py
-ages, masses, data_dict = parse_track_file("COND03_models.txt")
-interps = build_interpolators(ages, masses, data_dict)
-#
-Teff_val = interps["Teff"](([5.1, 5.3]))  # 5.1 Myr, 5.3 Mjup
-logg_val = interps["g"](([5.1, 5.3]))
-print(Teff_val,logg_val)
+Output interpolated values for T_eff and logg from an input age and mass using the COND03_models.txt
+This file is the data discussed in: Baraffe, Chabrier, Barman, Allard, Hauschildt, 2003, A&A, accepted "Evolutionary models for cool brown dwarfs and extrasolar giant planets. The case of HD 209458"
