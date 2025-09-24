@@ -122,5 +122,13 @@ def get_params(interpolators, age, mass, columns=("Teff", "g")):
 # Example usage:
 # ages, masses, data_dict = parse_track_file("track2.dat")
 # interps = build_interpolators(ages, masses, data_dict)
-# result = get_params(interps, 7.5, 735)  # one line query
+# result = get_params(interps, 1.0, 15.0, columns=("Teff", "g", "R/Rs"))
 # print(result)
+
+
+# Example usage:
+ages, masses, data_dict = parse_track_file("BHAC15_iso.2mass")
+interps = build_interpolators(ages, masses, data_dict)
+print(interps.keys())
+result = get_params(interps, 7.5, 735)  # one line query
+print(result)  # {"Teff": ..., "g": ...}
