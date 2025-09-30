@@ -53,7 +53,7 @@ def main():
     plt.show()
 
     # Save resampled spectrum
-    output_filename = os.path.join(output_folder, f"{name}_R{args.R}{ext}")
+    output_filename = os.path.join(output_folder, f"{name}_{args.R}{ext}")
     np.savetxt(output_filename, np.column_stack([wavelength, flux_smoothed]))
     print(f"Saved resampled spectrum to {output_filename}")
     print(f"Saved plot to {plot_filename}")
