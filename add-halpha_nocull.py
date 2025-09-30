@@ -1,0 +1,102 @@
+# This "nocull" version will not cut the H-alpha signal if it drops below the BT-Settl continuum.
+#
+#!/usr/bin/env python3
+import sys
+import os
+import numpy as np
+import matplotlib.pyplot as plt
+import smplotlib
+
+def main():
+    if len(sys.argv) != 3:
+        print("Usage: python combine_spectra.py <cifist_filename> <halpha_filename>")
+        sys.exit(1)
+
+    cifist_name = sys.argv[1]
+    halpha_name = sys.argv[2]
+
+    # Hard-coded directory structure
+    cifist_path = os.path.join("..", "1_Get_BTSETTL_CIFIST_resample", cifist_name)
+    halpha_path = os.path.join("Aoyama_Halpha_model", halpha_name)
+
+    # Read spectra
+    wl1, flux1 = np.loadtxt(cifist_path, unpack=True)
+    wl2, flux2 = np.loadtxt(halpha_path, unpack=True)
+
+    # Identify the H-alpha wavelength range
+    wl2_min = wl2.min()
+    wl2_max = wl2.max()
+
+    # Remove cifist points that overlap with H-alpha
+    mask_keep = (wl1 < wl2_min) | (wl1 > wl2_max)
+    wl1_clean = wl1[mask_keep]
+    flux1_clean = flux1[mask_keep]
+
+    # Combine the cleaned cifist with H-alpha
+    wl_combined = np.concatenate([wl1_clean, wl2])
+    flux_combined = np.concatenate([flux1_clean, flux2])
+
+    # Sort by wavelength
+    sorted_idx = np.argsort(wl_combined)
+    wl_combined = wl_combined[sorted_idx]
+    flux_combined = flux_combined[sorted_idx]
+
+    # Output filenames
+    base1 = os.path.splitext(cifist_name)[0]
+    base2 = os.path.splitext(halpha_name)[0]
+    out_file = f"{base1}_{base2}.dat"
+    combined_plot = f"{base1}_{base2}.png"
+    halpha_plot = f"{base2}_input.png"
+    inputs_plot = f"{base1}_{base2}_inputs.png"
+
+    # Save combined spectrum
+    np.savetxt(out_file, np.column_stack([wl_combined, flux_combined]),
+               fmt="%.6f %.6e",
+               header="Wavelength(Angstrom)  Flux(erg/cm2/s/Angstrom)")
+    print(f"Combined spectrum saved to {out_file}")
+
+    # Plot 1: Combined spectrum (log scale, 6200–8400 Å)
+    mask_combined = (wl_combined >= 6200) & (wl_combined <= 8400)
+    plt.figure(figsize=(10, 6))
+    plt.plot(wl_combined[mask_combined], flux_combined[mask_combined], label="Combined", color="black", linewidth=1.2)
+    plt.xlabel("Wavelength (Å)")
+    plt.ylabel("Flux (erg/cm²/s/Å)")
+    plt.yscale("log")
+    plt.title("Combined Spectrum")
+    plt.legend()
+    plt.tight_layout()
+    plt.savefig(combined_plot, dpi=300)
+    plt.close()
+    print(f"Combined spectrum plot saved to {combined_plot}")
+
+    # Plot 2: H-alpha input spectrum (full range, log y)
+    plt.figure(figsize=(10, 6))
+    plt.plot(wl2, flux2, color="red", label=f"{base2}")
+    plt.xlabel("Wavelength (Å)")
+    plt.ylabel("Flux (erg/cm²/s/Å)")
+    plt.yscale("log")
+    plt.title(f"H-alpha Input Spectrum: {base2}")
+    plt.legend()
+    plt.tight_layout()
+    plt.savefig(halpha_plot, dpi=300)
+    plt.close()
+    print(f"H-alpha input plot saved to {halpha_plot}")
+
+    # Plot 3: Both inputs together (log y, 5000–8000 Å)
+    mask_inputs_cifist = (wl1 >= 6000) & (wl1 <= 8000)
+    mask_inputs_halpha = (wl2 >= 6000) & (wl2 <= 8000)
+    plt.figure(figsize=(10, 6))
+    plt.plot(wl1[mask_inputs_cifist], flux1[mask_inputs_cifist], label=f"{base1}", alpha=0.7)
+    plt.plot(wl2[mask_inputs_halpha], flux2[mask_inputs_halpha], label=f"{base2}", alpha=0.7)
+    plt.xlabel("Wavelength (Å)")
+    plt.ylabel("Flux (erg/cm²/s/Å)")
+    plt.yscale("log")
+    plt.title(f"Input Spectra: {base1} & {base2}")
+    plt.legend()
+    plt.tight_layout()
+    plt.savefig(inputs_plot, dpi=300)
+    plt.close()
+    print(f"Input spectra plot saved to {inputs_plot}")
+
+if __name__ == "__main__":
+    main()
