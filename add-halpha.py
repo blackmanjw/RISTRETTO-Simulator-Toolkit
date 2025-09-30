@@ -15,8 +15,8 @@ def main():
     halpha_name = sys.argv[2]
 
     # Hard-coded directory structure
-    cifist_path = os.path.join("..", "1_Get_BTSETTL_CIFIST_resample", cifist_name)
-    halpha_path = os.path.join("Aoyama_Halpha_model", halpha_name)
+    cifist_path = os.path.join("input", cifist_name)
+    halpha_path = os.path.join("Halpha_model", halpha_name)
 
     # Read spectra
     wl1, flux1 = np.loadtxt(cifist_path, unpack=True)
