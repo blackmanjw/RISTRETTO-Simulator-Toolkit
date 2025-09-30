@@ -1,3 +1,6 @@
+# To run this: "python resample.py PDS70c_BT-Settl-CIFIST-1300K-4logg.txt --R 140000"
+# where R is the desired resolution. This flag is optional nand will default to 140000.
+#
 # resample.py
 import numpy as np
 import matplotlib.pyplot as plt
