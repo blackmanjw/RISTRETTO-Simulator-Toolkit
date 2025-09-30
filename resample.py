@@ -1,42 +1,59 @@
+# resample.py
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.ndimage import gaussian_filter1d
-import smplotlib
 import os
+import argparse
 
-path = "/Users/odin/Library/CloudStorage/OneDrive-UniversitaetBern/Code/RISTRETTO_Redux/1_Get_BTSETTL_CIFIST_resample/"   # <-- change to your desired path
-filename = "PDS70b_BT-Settl-CIFIST-1400K-4logg.txt"
+def main():
+    parser = argparse.ArgumentParser(description="Resample spectrum to a target resolution.")
+    parser.add_argument("filename", help="Name of the spectrum file in the input folder")
+    parser.add_argument("--R", type=int, default=140000, help="Target resolution (default: 140000)")
+    args = parser.parse_args()
 
-# Load your spectrum
-wavelength, flux = np.loadtxt(os.path.join(path, filename), unpack=True)
+    input_folder = "input"
+    output_folder = "input"
 
-# Desired resolution
-R_target = 140000  # change as needed
+    # Ensure output folder exists
+    os.makedirs(output_folder, exist_ok=True)
 
-# Compute delta_lambda at each point (approximate)
-delta_lambda = wavelength / R_target
-sigma_pixels = delta_lambda / (wavelength[1] - wavelength[0]) / 2.355
+    path = os.path.join(input_folder, args.filename)
+    if not os.path.exists(path):
+        raise FileNotFoundError(f"File '{path}' not found.")
 
-# If the wavelength grid is uniform, you can take the median value
-sigma_median = np.median(sigma_pixels)
+    # Load spectrum
+    wavelength, flux = np.loadtxt(path, unpack=True)
 
-# Convolve flux with Gaussian kernel
-flux_smoothed = gaussian_filter1d(flux, sigma=sigma_median)
+    # Compute sigma for Gaussian smoothing
+    delta_lambda = wavelength / args.R
+    sigma_pixels = delta_lambda / (wavelength[1] - wavelength[0]) / 2.355
+    sigma_median = np.median(sigma_pixels)
 
-# Plot result
-plt.plot(wavelength, flux, label="Original")
-plt.plot(wavelength, flux_smoothed, label=f"Downsampled (R={R_target})")
-plt.legend()
-plt.xlim(6200,8400)
-#plt.ylim(0.00001,1000)
-plt.ylim(0.00001,3e3)
-plt.yscale('log')
-plt.xlabel("Wavelength")
-plt.ylabel("Flux")
-# Save to file
-name, ext = os.path.splitext(filename)
-filename_save = f"{name}_140000{ext}"
-plt.savefig(os.path.join("output", f"{type}{output_name}.png"), bbox_inches='tight', dpi=300)
-plt.show()
+    # Smooth flux
+    flux_smoothed = gaussian_filter1d(flux, sigma=sigma_median)
 
-np.savetxt(os.path.join(path, filename_save), np.column_stack([wavelength, flux_smoothed]))
+    # Plot result
+    plt.figure(figsize=(10,5))
+    plt.plot(wavelength, flux, label="Original")
+    plt.plot(wavelength, flux_smoothed, label=f"Resampled (R={args.R})")
+    plt.legend()
+    plt.xlim(6200, 8400)
+    plt.ylim(0.00001, 3e3)
+    plt.yscale('log')
+    plt.xlabel("Wavelength")
+    plt.ylabel("Flux")
+
+    # Save figure
+    name, ext = os.path.splitext(args.filename)
+    plot_filename = os.path.join(output_folder, f"{name}_R{args.R}.png")
+    plt.savefig(plot_filename, bbox_inches='tight', dpi=300)
+    plt.show()
+
+    # Save resampled spectrum
+    output_filename = os.path.join(output_folder, f"{name}_R{args.R}{ext}")
+    np.savetxt(output_filename, np.column_stack([wavelength, flux_smoothed]))
+    print(f"Saved resampled spectrum to {output_filename}")
+    print(f"Saved plot to {plot_filename}")
+
+if __name__ == "__main__":
+    main()
