@@ -11,3 +11,10 @@ NOTE: Isochrones in different filters will be regularly added on this site.
 The file BHAC15_tracks+structure include tracks and some information on the internal structure
 (mass of the radiative core, gyration radii, central temperature and densities, etc...).
 
+## RISTRETTO simulation procedure
+
+1. Download desired BT-Settl model (set temperature and log(g)) from https://svo2.cab.inta-csic.es/theory/newov2/index.php?models=bt-settl-cifist. If necessary use the baraffe_isochrone tool to determine the Teff and log(g) from the mass and age.
+2. <code>python resample.py PDS70c_BT-Settl-CIFIST-1300K-4logg.txt --R 140000</code> The --R parameter (desired resolution for resampling) is optional.
+3. <code>python resample.py PDS70c_BT-Settl-CIFIST-1300K-4logg.txt</code>
+4. <code>python resample.py PDS70c_BT-Settl-CIFIST-1300K-4logg.txt</code>
+5. <code>python resample.py PDS70c_BT-Settl-CIFIST-1300K-4logg.txt</code>
