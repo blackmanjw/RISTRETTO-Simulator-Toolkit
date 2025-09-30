@@ -48,7 +48,7 @@ def main():
 
     # Save figure
     name, ext = os.path.splitext(args.filename)
-    plot_filename = os.path.join(output_folder, f"{name}_R{args.R}.png")
+    plot_filename = os.path.join(output_folder, f"{name}_{args.R}.png")
     plt.savefig(plot_filename, bbox_inches='tight', dpi=300)
     plt.show()
 
