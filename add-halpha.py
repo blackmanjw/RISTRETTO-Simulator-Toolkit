@@ -1,3 +1,5 @@
+# Run like this: python add-halpha.py 2MJ1612b_BT-Settl-CIFIST-1200K-3.5logg_140000.txt Ha_60_12.dat
+#
 #!/usr/bin/env python3
 import sys
 import os
