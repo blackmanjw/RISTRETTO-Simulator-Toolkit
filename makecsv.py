@@ -5,6 +5,7 @@ import sys
 import matplotlib
 matplotlib.use("Agg")   # use non-GUI backend
 import matplotlib.pyplot as plt
+from scipy.interpolate import PchipInterpolator
 
 ############################
 # Handle arguments
@@ -102,7 +103,8 @@ logwave = np.arange(
 )
 wavelength_grid_angstroms = 10**logwave
 wave = wavelength_grid_angstroms[100:-max_cut]
-spec_star_ph = CubicSpline(wave_star_restFrame, spec_star_ph)(wavelength_grid_angstroms)
+#spec_star_ph = CubicSpline(wave_star_restFrame, spec_star_ph)(wavelength_grid_angstroms)
+spec_star_ph = PchipInterpolator(wave_star_restFrame, spec_star_ph)(wavelength_grid_angstroms)
 
 ############################
 # Per-fiber output + plot
