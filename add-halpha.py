@@ -1,5 +1,3 @@
-# Run like this: python add-halpha.py 2MJ1612b_BT-Settl-CIFIST-1200K-3.5logg_140000.txt Ha_60_12.dat
-#
 #!/usr/bin/env python3
 import sys
 import os
@@ -15,8 +13,11 @@ def main():
     halpha_name = sys.argv[2]
 
     # Hard-coded directory structure
-    cifist_path = os.path.join("input", cifist_name)
-    halpha_path = os.path.join("Halpha_model", halpha_name)
+    cifist_dir = "input"
+    halpha_dir = "Halpha_model"
+
+    cifist_path = os.path.join(cifist_dir, cifist_name)
+    halpha_path = os.path.join(halpha_dir, halpha_name)
 
     # Read spectra
     wl1, flux1 = np.loadtxt(cifist_path, unpack=True)
@@ -46,13 +47,17 @@ def main():
     wl_combined = wl_combined[sorted_idx]
     flux_combined = flux_combined[sorted_idx]
 
+    # Output directory = same as CIFIST input dir
+    output_dir = cifist_dir
+    os.makedirs(output_dir, exist_ok=True)
+
     # Output filenames
     base1 = os.path.splitext(cifist_name)[0]
     base2 = os.path.splitext(halpha_name)[0]
-    out_file = f"{base1}_{base2}.dat"
-    combined_plot = f"{base1}_{base2}.png"
-    halpha_plot = f"{base2}_input.png"
-    inputs_plot = f"{base1}_{base2}_inputs.png"
+    out_file = os.path.join(output_dir, f"{base1}_{base2}.dat")
+    combined_plot = os.path.join(output_dir, f"{base1}_{base2}.png")
+    halpha_plot = os.path.join(output_dir, f"{base2}_input.png")
+    inputs_plot = os.path.join(output_dir, f"{base1}_{base2}_inputs.png")
 
     # Save combined spectrum
     np.savetxt(out_file, np.column_stack([wl_combined, flux_combined]),
