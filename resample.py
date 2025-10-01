@@ -54,7 +54,12 @@ def main():
 
     # Save resampled spectrum
     output_filename = os.path.join(output_folder, f"{name}_{args.R}{ext}")
-    np.savetxt(output_filename, np.column_stack([wavelength, flux_smoothed]))
+    # np.savetxt(output_filename, np.column_stack([wavelength, flux_smoothed]))
+    np.savetxt(
+    output_filename,
+    np.column_stack([wavelength, flux_smoothed]),
+    fmt=["%.6f", "%.6e"],  # wavelength to 6 decimals, flux in scientific notation
+    header=f"Resampled spectrum at R={args.R}")
     print(f"Saved resampled spectrum to {output_filename}")
     print(f"Saved plot to {plot_filename}")
 
