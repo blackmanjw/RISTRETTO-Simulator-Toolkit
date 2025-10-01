@@ -58,8 +58,9 @@ def main():
     np.savetxt(
     output_filename,
     np.column_stack([wavelength, flux_smoothed]),
-    fmt=["%.6f", "%.6e"],  # wavelength to 6 decimals, flux in scientific notation
-    header=f"Resampled spectrum at R={args.R}")
+    fmt=["%.3f", "%.6e"],  # wavelength with 3 decimals, flux in scientific notation
+    header=f"Resampled spectrum at R={args.R}"
+    )
     print(f"Saved resampled spectrum to {output_filename}")
     print(f"Saved plot to {plot_filename}")
 
