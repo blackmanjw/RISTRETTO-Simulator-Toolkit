@@ -3,6 +3,7 @@ import os
 import glob
 import numpy as np
 import matplotlib.pyplot as plt
+import smplotlib
 
 def main():
     output_dir = "output"
