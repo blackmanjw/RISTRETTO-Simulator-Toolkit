@@ -27,7 +27,7 @@ def main():
 
     plt.xlabel("Wavelength (nm)")
     plt.ylabel("Flux (photons/s")
-    plt.title("All spectra for Pyechelle input R")
+    plt.title("All spectra for Pyechelle input")
 
     # Place legend outside plot on the right
     plt.legend(
