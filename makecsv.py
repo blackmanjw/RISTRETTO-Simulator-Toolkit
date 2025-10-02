@@ -128,7 +128,7 @@ for fiber in [1]:
     plt.figure(figsize=(8,5))
     plt.plot(wave, fiber_flux[:len(wave)], label=f"Fiber {fiber}")
     plt.xlabel("Wavelength (nm)")
-    plt.ylabel("Flux")
+    plt.ylabel("Flux (photons/s)")
     plt. yscale("log")
     plt.title(f"Spectrum for {filename_base} - Fiber {fiber}")
     plt.legend()
