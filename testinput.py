@@ -18,7 +18,7 @@ def gauss_convolve(spectrum, fwhm):
 def create_spec_from_csv(df, exposure_time, wave, wave_resampled):
     """Create simulated spectrum from CSV flux, convolved and interpolated."""
     resolution_rv = 0.86  # km/s
-    flux = df[1].values * exposure_time * wave * 10 * resolution_rv / 2.99792458e5
+    flux = df['flux'].values * exposure_time * wave * 10 * resolution_rv / 2.99792458e5
     flux = gauss_convolve(flux, 300000 / 140000. / 0.35)
     return CubicSpline(wave, flux)(wave_resampled)
 
@@ -44,7 +44,8 @@ if not os.path.exists(csv_file):
     sys.exit(1)
 
 # Load CSV
-df_star = pd.read_csv(csv_file, header=None)
+# Load CSV with header
+df_star = pd.read_csv(csv_file)  # header row is automatically used
 
 # Define wavelength range (modify if needed)
 minim_wave = 610.0
