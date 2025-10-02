@@ -26,8 +26,8 @@ def main():
             print(f"Skipping {f}: {e}")
 
     plt.xlabel("Wavelength (nm)")
-    plt.ylabel("Flux")
-    plt.title("All fiber1 spectra")
+    plt.ylabel("Flux (photons/s")
+    plt.title("All spectra for Pyechelle input")
 
     # Place legend outside plot on the right
     plt.legend(
