@@ -3,7 +3,7 @@ import os
 import glob
 import numpy as np
 import matplotlib.pyplot as plt
-import smplotlib
+import smplotlib  # since you mentioned adding this
 
 def main():
     output_dir = "output"
@@ -28,13 +28,21 @@ def main():
     plt.xlabel("Wavelength (nm)")
     plt.ylabel("Flux")
     plt.title("All fiber1 spectra")
-    plt.legend(fontsize="small", ncol=2)
+
+    # Place legend outside plot on the right
+    plt.legend(
+        fontsize="small",
+        bbox_to_anchor=(1.02, 1),
+        loc="upper left",
+        borderaxespad=0
+    )
+
     plt.yscale("log")   # remove this if you want linear flux
-    plt.tight_layout()
+    plt.tight_layout(rect=[0, 0, 0.8, 1])  # leave space on right for legend
 
     # Save plot as PNG inside output folder
     save_path = os.path.join(output_dir, "plotoutput.png")
-    plt.savefig(save_path, dpi=300)
+    plt.savefig(save_path, dpi=300, bbox_inches="tight")
     print(f"Plot saved to {save_path}")
 
     plt.show()
