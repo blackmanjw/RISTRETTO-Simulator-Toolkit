@@ -17,5 +17,5 @@ The file BHAC15_tracks+structure include tracks and some information on the inte
 2. Downsample to spectral resolution of 140,000 (input is in the millions). <br><code>python resample.py PDS70c_BT-Settl-CIFIST-1300K-4logg.txt --R 140000</code><br> The --R parameter (desired resolution for resampling) is optional.
 3. Add the simulated H-alpha from Yuhiko Aoyama's model. <br><code>python add-halpha.py 2MJ1612b_BT-Settl-CIFIST-1200K-3.5logg_140000.txt Ha_60_12.dat</code>
 4. Convert to input for Pyechelle, eg. <br><code> python makecsv.py PDS70b_BT-Settl-CIFIST-1400K-4logg_140000_Ha_60_12.txt</code>
-5. You can plot and overlay all the Pyecehlle inputs (the resulting .csv files) using the code <code>plotoutput.py</code>
+5. You can plot and overlay all the inputs to the above procedure (<code>plotinput.py</code>) and also the outputs which will be the subsequent Pyecehlle inputs (the resulting .csv files) using the code <code>plotoutput.py</code>
 6. Copy all the outputs to the Ubelix server so you can run Pyechelle. <br><code>scp output/*.csv jb23l046@submit03.unibe.ch:/storage/homefs/jb23l046/Simu_run/data/in/</code>
