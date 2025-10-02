@@ -14,35 +14,37 @@ def main():
         print("No *fiber1.csv files found in 'output/'")
         return
 
-    plt.figure(figsize=(12, 6))
+    fig, ax = plt.subplots(figsize=(12, 6))
 
     for f in files:
         try:
             # Skip header row, assume two numeric columns
             wl, flux = np.loadtxt(f, delimiter=",", unpack=True, skiprows=1)
             label = os.path.basename(f).replace("_fiber1.csv", "")
-            plt.plot(wl, flux, label=label, alpha=0.8)
+            ax.plot(wl, flux, label=label, alpha=0.8)
         except Exception as e:
             print(f"Skipping {f}: {e}")
 
-    plt.xlabel("Wavelength (nm)")
-    plt.ylabel("Flux (photons/s")
-    plt.title("All spectra for Pyechelle input")
+    ax.set_xlabel("Wavelength (nm)")
+    ax.set_ylabel("Flux (photons/s)")
+    ax.set_title("All spectra for Pyechelle input")
+    ax.set_yscale("log")   # remove this if you want linear flux
 
-    # Place legend outside plot on the right
-    plt.legend(
+    # Place legend under plot with more rows (fewer columns)
+    legend = ax.legend(
         fontsize="small",
-        bbox_to_anchor=(1.02, 1),
-        loc="upper left",
-        borderaxespad=0
+        loc="upper center",
+        bbox_to_anchor=(0.5, -0.3),  # push further down
+        ncol=2,                      # fewer columns → more rows
+        frameon=False
     )
 
-    plt.yscale("log")   # remove this if you want linear flux
-    plt.tight_layout(rect=[0, 0, 0.8, 1])  # leave space on right for legend
+    # Leave space for legend below
+    fig.subplots_adjust(bottom=0.35)
 
     # Save plot as PNG inside output folder
     save_path = os.path.join(output_dir, "plotoutput.png")
-    plt.savefig(save_path, dpi=300, bbox_inches="tight")
+    fig.savefig(save_path, dpi=300, bbox_inches="tight")
     print(f"Plot saved to {save_path}")
 
     plt.show()
