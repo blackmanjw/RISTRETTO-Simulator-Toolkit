@@ -30,6 +30,12 @@ def main():
     plt.legend(fontsize="small", ncol=2)
     plt.yscale("log")   # remove this if you want linear flux
     plt.tight_layout()
+
+    # Save plot as PNG inside output folder
+    save_path = os.path.join(output_dir, "plotoutput.png")
+    plt.savefig(save_path, dpi=300)
+    print(f"Plot saved to {save_path}")
+
     plt.show()
 
 if __name__ == "__main__":
