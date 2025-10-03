@@ -1,20 +1,23 @@
 import numpy as np
-from scipy.interpolate import CubicSpline
+from scipy.interpolate import CubicSpline, PchipInterpolator, interp1d
 import os
 import sys
 import matplotlib
-matplotlib.use("Agg")   # use non-GUI backend
+matplotlib.use("Agg")
 import matplotlib.pyplot as plt
-from scipy.interpolate import PchipInterpolator
 
 ############################
 # Handle arguments
 ############################
-if len(sys.argv) != 2:
-    print("Usage: python makecsv.py filename.txt")
+if len(sys.argv) < 2 or len(sys.argv) > 3:
+    print("Usage: python makecsv.py filename.txt [separation_mas]")
     sys.exit(1)
 
 filename = sys.argv[1]
+separation_mas = None
+if len(sys.argv) == 3:
+    separation_mas = float(sys.argv[2])
+    separation_arcsec = separation_mas / 1000.0  # convert mas to arcsec
 
 # Input directory
 input_dir = os.path.join(os.getcwd(), "input")
@@ -53,7 +56,6 @@ mask = (wave_star_restFrame >= 6000) & (wave_star_restFrame <= 8600)
 wave_star_restFrame = wave_star_restFrame[mask] / 10
 spec_star_erg = spec_star_erg[mask]
 
-# Convert flux
 spec_starr = spec_star_erg * 1e8
 
 ############################
@@ -65,7 +67,6 @@ data = np.column_stack((wavelength_str, flux_str))
 
 csv_outfile = os.path.join(output_dir, f"{filename_base}.csv")
 np.savetxt(csv_outfile, data, delimiter=",", header="wavelength_nm,flux", comments="", fmt="%s")
-print(f"Saved raw spectrum CSV -> {csv_outfile}")
 
 ############################
 # Photon flux calculation
@@ -103,20 +104,59 @@ logwave = np.arange(
 )
 wavelength_grid_angstroms = 10**logwave
 wave = wavelength_grid_angstroms[100:-max_cut]
-#spec_star_ph = CubicSpline(wave_star_restFrame, spec_star_ph)(wavelength_grid_angstroms)
+
 spec_star_ph = PchipInterpolator(wave_star_restFrame, spec_star_ph)(wavelength_grid_angstroms)
+
+############################
+# Determine coupling object
+############################
+# Default values
+coup_object = 0.45  # default
+append_str = ""
+
+if "star" in filename.lower():
+    coup_object = 3.5e-4  # default for star
+    print("This is a star.")
+
+    if separation_mas is not None:
+        separation_arcsec = separation_mas / 1000.0
+        offaxis_file = "ao-coupling/fibre_offaxis_vs_distance.txt"
+        print(f"This is an off-axis observation with separation: {separation_mas:.0f} mas")
+        if os.path.exists(offaxis_file):
+            offaxis_data = np.loadtxt(offaxis_file)
+            distances = offaxis_data[:, 0]
+            couplings = offaxis_data[:, 1]
+            interp_func = interp1d(distances, couplings, bounds_error=False, fill_value="extrapolate")
+            coup_object = float(interp_func(separation_arcsec))
+        append_str = f"{int(separation_mas)}mas"
+    else:
+        print("This is an on-axis observation.")
+        append_str = "38mas"
+
+else:
+    print("This is a planet.")
+
+# Print coupling and append coup_object to append_str
+if 0.4 <= coup_object <= 0.6:
+    print(f"Adaptive Optics Coupling: {coup_object:.2f} %")
+    append_str += f"_{coup_object:.2f}"
+else:
+    print(f"Adaptive Optics Coupling: {coup_object:.3e} %")
+    append_str += f"_{coup_object:.6e}"
+
+
+print(f"Saved raw spectrum CSV -> {csv_outfile}")
 
 ############################
 # Per-fiber output + plot
 ############################
 for fiber in [1]:
-    coupl_object = 3.5e-4
     fiber_flux = (
         CubicSpline(wavelength_grid_angstroms, spec_star_ph)(wavelength_grid_angstroms)
-        * coupl_object
+        * coup_object
     )
 
-    fiber_outfile = os.path.join(output_dir, f"{filename_base}_fiber{fiber}.csv")
+    fiber_outfile = os.path.join(output_dir, f"{filename_base}_fiber{fiber}_{append_str}.csv")
     with open(fiber_outfile, "w") as f:
         f.write("wavelength_nm,flux\n")
         for j in range(len(wave)):
@@ -129,12 +169,12 @@ for fiber in [1]:
     plt.plot(wave, fiber_flux[:len(wave)], label=f"Fiber {fiber}")
     plt.xlabel("Wavelength (nm)")
     plt.ylabel("Flux (photons/s)")
-    plt. yscale("log")
+    plt.yscale("log")
     plt.title(f"Spectrum for {filename_base} - Fiber {fiber}")
     plt.legend()
     plt.tight_layout()
 
-    png_outfile = os.path.join(output_dir, f"{filename_base}_fiber{fiber}.png")
+    png_outfile = os.path.join(output_dir, f"{filename_base}_fiber{fiber}_{append_str}.png")
     plt.savefig(png_outfile, dpi=150)
     plt.close()
     print(f"Saved plot -> {png_outfile}")
