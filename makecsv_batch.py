@@ -31,7 +31,7 @@ os.makedirs(output_dir, exist_ok=True)
 base_name = os.path.splitext(os.path.basename(input_file))[0]
 
 # --- Step 1: Run makecsv.py for separations 100-700 mas in 50 mas steps ---
-separations = range(100, 701, 50)
+separations = range(100, 650, 50)
 for sep in separations:
     print(f"Running makecsv.py with separation {sep} mas...")
     
