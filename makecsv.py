@@ -128,21 +128,26 @@ if "star" in filename.lower():
             couplings = offaxis_data[:, 1]
             interp_func = interp1d(distances, couplings, bounds_error=False, fill_value="extrapolate")
             coup_object = float(interp_func(separation_arcsec))
-        append_str = f"{int(separation_mas)}mas"
+        separation_str = f"{int(separation_mas)}mas"
     else:
         print("This is an on-axis observation.")
-        append_str = "38mas"
+        separation_str = "38mas"
 
 else:
     print("This is a planet.")
+    separation_str = ""
 
-# Print coupling and append coup_object to append_str
+# Construct append_str: coup_object first, then separation
 if 0.4 <= coup_object <= 0.6:
     print(f"Adaptive Optics Coupling: {coup_object:.2f} %")
-    append_str += f"_{coup_object:.2f}"
+    coup_str = f"{coup_object:.2f}"
 else:
     print(f"Adaptive Optics Coupling: {coup_object:.3e} %")
-    append_str += f"_{coup_object:.6e}"
+    coup_str = f"{coup_object:.2e}"
+
+# Combine coup_object and separation
+append_str = f"{coup_str}_{separation_str}" if separation_str else coup_str
+
 
 
 print(f"Saved raw spectrum CSV -> {csv_outfile}")
