@@ -120,7 +120,7 @@ if "star" in filename.lower():
 
     if separation_mas is not None:
         separation_arcsec = separation_mas / 1000.0
-        offaxis_file = "ao-coupling/fibre_offaxis_vs_distance.txt"
+        offaxis_file = "ao-coupling/fibre_offaxis_vs_distance_pchip.txt"
         print(f"This is an off-axis observation with separation: {separation_mas:.0f} mas")
         if os.path.exists(offaxis_file):
             offaxis_data = np.loadtxt(offaxis_file)
