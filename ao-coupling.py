@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 from scipy.ndimage import gaussian_filter1d 
 import smplotlib
 
-hdul = fits.open("rho_offaxis_Imag_7.4_s_0.76_elev_90_wfsR_60_g_0.7_NmodeBR_0_f2_1.0_delay_1_Npix_120_misreg_0.00_0.25_-0.25_0.00_OG1.fits")
+hdul = fits.open("ao-coupling/rho_offaxis_Imag_7.4_s_0.76_elev_90_wfsR_60_g_0.7_NmodeBR_0_f2_1.0_delay_1_Npix_120_misreg_0.00_0.25_-0.25_0.00_OG1.fits")
 hdul.info()
 data = hdul[0].data
 distance = hdul[2].data
