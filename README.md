@@ -21,6 +21,6 @@ The file BHAC15_tracks+structure include tracks and some information on the inte
 6. Test the Pyechelle input with <br><code>python testinput.py WISPIT2b_BT-Settl-CIFIST-1400K-4logg_140000_Ha_60_12_fiber1.csv 1800</code>. This adds noise and scales it to a set exposure time (here 1800s). Adding exposure time is optional. The default is 3600s (1 hour).
 7. Copy all the outputs to the Ubelix server so you can run Pyechelle. <br><code>scp output/*.csv jb23l046@submit03.unibe.ch:/storage/homefs/jb23l046/Simu_run/data/in/</code>
 
-### ADDITIONS
+#### Also
 
 1. <code> python ao-coupling.py </code> is used to generate the adaptive optics coupling map for the different fibres (1,2, 3-7 averaged). For the off axis case we only consider Fibre 2. The output of this code is <code>ao-coupling/fibre_offaxis_vs_distance.txt</code>. This is read-in and interpolated when running makecsv.py with a specified separation.
