@@ -37,7 +37,7 @@ distance[0:0]
 output = np.column_stack((distance, fibre_offaxis))
 
 # Save to text file
-np.savetxt("fibre_offaxis_vs_distance.txt", output, header="Distance  Fibre_OffAxis", fmt="%.8f" )
+np.savetxt("ao-coupling/fibre_offaxis_vs_distance.txt", output, header="Distance  Fibre_OffAxis", fmt="%.8f" )
 
 # --- Interpolation function ---
 def get_fibre_values_at(d):
@@ -62,5 +62,5 @@ plt.ylabel("Stellar Coupling")
 plt.yscale("log")
 plt.xlim(-0.02,0.7)
 plt.legend()
-plt.savefig('coupling.png', bbox_inches='tight', dpi=300)
+plt.savefig('ao-coupling/ao-coupling.png', bbox_inches='tight', dpi=300)
 plt.show()
