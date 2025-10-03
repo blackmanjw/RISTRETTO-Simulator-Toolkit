@@ -56,7 +56,7 @@ fibre37_smooth = moving_average(fibre37, window_size)
 output_smoothed = np.column_stack((distance, fibre2_smooth))
 np.savetxt("ao-coupling/fibre_offaxis_vs_distance.txt", output_smoothed,
            header="Distance  Fibre2_Smoothed", fmt="%.8f")
-print("Saved ao-coupling/fibre_offaxis_vs_distance.txt")
+print("Saved ao-coupling/fibre2_smoothed_vs_distance.txt")
 
 # --- Extra smooth curves using Gaussian smoothing ---
 sigma_extra = 5  # adjust for more/less extra smoothing
