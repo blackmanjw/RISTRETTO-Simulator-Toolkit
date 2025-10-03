@@ -53,10 +53,9 @@ print(f"At distance {query_distance:.4f}: On-axis={on_val:.8e}, Off-axis={off_va
 
 cmap = plt.get_cmap("viridis") 
 
-plt.plot(distance, fibre1, label="Fibre 1", color='#440154FF')
-plt.plot(distance, fibre2, label="Fibre 2", color='#2A788EFF')
-#plt.plot(distance, fibre37, label="Fibre 3-7 (avg)", color='y')
-plt.plot(distance, fibre37, label="Fibre 3-7 (avg)", color='#7AD151FF')
+plt.plot(distance, fibre1, label="Fibre 1", color='#0072bd')
+plt.plot(distance, fibre2, label="Fibre 2", color='#d95319')
+plt.plot(distance, fibre37, label="Fibre 3-7 (avg)", color='#edb120')
 plt.xlabel("Off-axis distance (arcseconds)")
 plt.ylabel("Stellar Coupling")
 plt.yscale("log")
