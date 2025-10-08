@@ -163,7 +163,7 @@ for fiber in [1]:
 
     fiber_outfile = os.path.join(output_dir, f"{filename_base}_fiber{fiber}_{append_str}.csv")
     with open(fiber_outfile, "w") as f:
-        f.write("wavelength_nm,flux\n")
+        #f.write("wavelength_nm,flux\n")
         for j in range(len(wave)):
             f.write(f"{wave[j]:.3f},{fiber_flux[j]:.6e}\n")
 
