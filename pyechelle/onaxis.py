@@ -15,20 +15,13 @@ for position in range(1):
     sim          = Simulator(ZEMAX("RISTRETTOtest18"))
     sim.set_ccd(1)
     #sim.set_cuda(True)
-    sim.set_fibers([1]) # 1,2,3,4,5,6,7
+    sim.set_fibers([1,2]) # 1,2,3,4,5,6,7
     sim.set_sources([
-        CSVSource(base_path + f"in/2MJ1612_star_BT-Settl-CIFIST-3900K-4logg_140000_fiber1_2.07e-03_100mas.csv", list_like=False,wavelength_units='nm
-',flux_units='ph/s/AA'),
-        #CSVSource(base_path + f"in/fiber_2.csv", list_like=False,wavelength_units='nm',flux_units='ph/s/AA'),
-        #CSVSource(base_path + f"in/fiber_3.csv", list_like=False,wavelength_units='nm',flux_units='ph/s/AA'),
-        #CSVSource(base_path + f"in/fiber_4.csv", list_like=False,wavelength_units='nm',flux_units='ph/s/AA'),
-        #CSVSource(base_path + f"in/fiber_5.csv", list_like=False,wavelength_units='nm',flux_units='ph/s/AA')
-        #CSVSource(base_path + f"in/fiber_6.csv", list_like=False,wavelength_units='nm',flux_units='ph/s/AA'),
-        #CSVSource(base_path + f"fin/fiber_7.csv", list_like=False,wavelength_units='nm',flux_units='ph/s/AA')
-        ])
+        CSVSource(base_path + f"in/2MJ1612_star_BT-Settl-CIFIST-3900K-4logg_140000_fiber1_0.45_central.csv", list_like=False,wavelength_units='nm',flux_units='ph/s/AA'),
+        CSVSource(base_path + f"in/fiber_2.csv", list_like=False,wavelength_units='nm',flux_units='ph/s/AA')])
     #sim.set_atmospheres([True], sky_calc_kwargs={'airmass': airmass[position],'observatory':'paranal'})
     sim.set_exposure_time(exp_time)
     sim.set_bias(250)
     sim.set_read_noise(3)
-    sim.set_output(base_path + 'out/'+f'test0810_{exp_time}_s.fits', overwrite=True)
+    sim.set_output(base_path + 'out/onaxis/'+f'test0810_{exp_time}_s.fits', overwrite=True)
     sim.run()
