@@ -54,7 +54,7 @@ def main():
     # Output filenames
     base1 = os.path.splitext(cifist_name)[0]
     base2 = os.path.splitext(halpha_name)[0]
-    out_file = os.path.join(output_dir, f"{base1}_{base2}.dat")
+    out_file = os.path.join(output_dir, f"{base1}_{base2}.txt")
     combined_plot = os.path.join(output_dir, f"{base1}_{base2}.png")
     halpha_plot = os.path.join(output_dir, f"{base2}_input.png")
     inputs_plot = os.path.join(output_dir, f"{base1}_{base2}_inputs.png")
