@@ -30,7 +30,7 @@ from scipy.interpolate import interp1d
 # ============================================================================
 
 # Base directory containing all necessary calibration files
-base_path = '/Users/odin/toolkit'
+base_path = '/Users/odin/toolkit/'
 
 # ============================================================================
 # LOAD CALIBRATION DATA
