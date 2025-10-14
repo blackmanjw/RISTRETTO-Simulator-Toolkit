@@ -30,7 +30,7 @@ from scipy.interpolate import interp1d
 # ============================================================================
 
 # Base directory containing all necessary calibration files
-base_path = '/Users/odin/toolkit/'
+base_path = '/Users/odin/toolkit'
 
 # ============================================================================
 # LOAD CALIBRATION DATA
@@ -340,7 +340,7 @@ def weighted_avg_and_std(fluxes, weights):
 # ORDER MERGING FUNCTION
 # ============================================================================
 
-def merged_spectrum(frame, the_fiber):
+def merge_all_orders(frame, the_fiber):
     """
     Merge all spectral orders into a single continuous spectrum.
     
@@ -547,12 +547,12 @@ def main():
     
     # Extract and merge all orders for specified fiber
     print("Merging spectral orders...")
-    wave_merged, merged_spectrum = merged_spectrum(spectrum_2D, the_fiber)
+    wave_merged, merged_spec = merge_all_orders(spectrum_2D, the_fiber)
     
     # ---- PLOT MERGED SPECTRUM ----
     plt.figure(figsize=(10, 6))
     plt.title(f'Merged Spectrum - {filename} (Fiber {the_fiber})')
-    plt.plot(wave_merged, merged_spectrum[0])
+    plt.plot(wave_merged, merged_spec[0])
     plt.xlabel('Wavelength (Angstroms)')
     plt.ylabel('Flux (photons)')
     plt.xlim(6200, 6500)  # Show small wavelength region
