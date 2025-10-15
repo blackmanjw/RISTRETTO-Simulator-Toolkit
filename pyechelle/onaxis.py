@@ -1,27 +1,109 @@
 from pyechelle.simulator import Simulator
 from pyechelle.spectrograph import ZEMAX
 from pyechelle.sources import CSVSource
-from pyechelle.telescope import Telescope
 import numpy as np
-from datetime import datetime, timedelta
+import os
 
+# === Common parameters ===
 base_path = '/storage/homefs/jb23l046/Simu_run/data/'
+exp_time = 3600  # seconds
+spectrograph_model = "RISTRETTOtest18"
 
-exp_time= 3600  # in seconds
+# === Define systems and their planets ===
+systems = {
+    "2MJ1612": {
+        "star_base": "2MJ1612_star_BT-Settl-CIFIST-3900K-4logg_140000",
+        "planets": ["2MJ1612b_BT-Settl-CIFIST-1200K-3.5logg_140000"],
+    },
+    "WISPIT2": {
+        "star_base": "WISPIT2_star_BT-Settl-CIFIST-4400K-4logg_140000",
+        "planets": ["WISPIT2b_BT-Settl-CIFIST-1400K-4logg_140000"],
+    },
+    "PDS70": {
+        "star_base": "PDS70_star_BT-Settl-CIFIST-4200K-5logg_140000",
+        "planets": [
+            "PDS70b_BT-Settl-CIFIST-1400K-4logg_140000",
+            "PDS70c_BT-Settl-CIFIST-1300K-4logg_140000",
+        ],
+    },
+}
 
+# === Variations for Ha lines ===
+ha_variations = [
+    ("60", "12"),
+    ("60", "14"),
+    ("80", "12"),
+    ("80", "14"),
+]
 
-for position in range(1):
+# === Function to build filenames ===
+def planet_filename(base, ha1, ha2):
+    return f"{base}_Ha_{ha1}_{ha2}_0.45.csv"
 
-    sim          = Simulator(ZEMAX("RISTRETTOtest18"))
-    sim.set_ccd(1)
-    #sim.set_cuda(True)
-    sim.set_fibers([1,2]) # 1,2,3,4,5,6,7
-    sim.set_sources([
-        CSVSource(base_path + f"in/2MJ1612_star_BT-Settl-CIFIST-3900K-4logg_140000_fiber1_0.45_central.csv", list_like=False,wavelength_units='nm',flux_units='ph/s/AA'),
-        CSVSource(base_path + f"in/fiber_2.csv", list_like=False,wavelength_units='nm',flux_units='ph/s/AA')])
-    #sim.set_atmospheres([True], sky_calc_kwargs={'airmass': airmass[position],'observatory':'paranal'})
-    sim.set_exposure_time(exp_time)
-    sim.set_bias(250)
-    sim.set_read_noise(3)
-    sim.set_output(base_path + 'out/onaxis/'+f'test0810_{exp_time}_s.fits', overwrite=True)
-    sim.run()
+def extract_ha_tag(filename):
+    """Extract Ha tag (e.g., Ha_80_12) without trailing numeric parts."""
+    parts = filename.replace(".csv", "").split("_")
+    try:
+        ha_idx = parts.index("Ha")
+        return "_".join(parts[ha_idx:ha_idx+3])
+    except ValueError:
+        return "Ha_unknown"
+
+# === Main Loop ===
+for system_name, config in systems.items():
+    print(f"\n=== Processing system: {system_name} ===")
+
+    star_base = config["star_base"]
+    star_file_045 = f"{star_base}_0.45.csv"
+    star_file_350e4 = f"{star_base}_3.50e-04.csv"
+
+    # Load the secondary star file once per system
+    star_350e4_data = np.loadtxt(os.path.join(base_path, "in", star_file_350e4), delimiter=",")
+
+    for planet_base in config["planets"]:
+        for ha1, ha2 in ha_variations:
+            planet_file = planet_filename(planet_base, ha1, ha2)
+            planet_path = os.path.join(base_path, "in", planet_file)
+
+            # --- Load planet data ---
+            planet_data = np.loadtxt(planet_path, delimiter=",")
+
+            # --- Check wavelength match ---
+            if not np.allclose(star_350e4_data[:, 0], planet_data[:, 0]):
+                raise ValueError(f"Wavelength grids mismatch between {planet_file} and {star_file_350e4}")
+
+            # --- Combine star + planet flux ---
+            combined_flux = planet_data[:, 1] + star_350e4_data[:, 1]
+            combined_data = np.column_stack((planet_data[:, 0], combined_flux))
+
+            # --- Build output file names ---
+            ha_tag_str = extract_ha_tag(planet_file)
+            planet_name = os.path.basename(planet_base.split('_')[0])  # e.g. "2MJ1612b"
+            combined_file = f"{planet_name}_{ha_tag_str}.csv"
+            combined_path = os.path.join(base_path, "in", combined_file)
+            np.savetxt(combined_path, combined_data, delimiter=",", fmt="%.6e")
+            print(f"  → Combined CSV saved: {combined_path}")
+
+            # --- Run simulator ---
+            sim = Simulator(ZEMAX(spectrograph_model))
+            sim.set_ccd(1)
+            sim.set_fibers([1, 2])
+            sim.set_sources([
+                CSVSource(os.path.join(base_path, "in", star_file_045), list_like=False,
+                          wavelength_units='nm', flux_units='ph/s/AA'),
+                CSVSource(combined_path, list_like=False,
+                          wavelength_units='nm', flux_units='ph/s/AA')
+            ])
+            sim.set_exposure_time(exp_time)
+            sim.set_bias(250)
+            sim.set_read_noise(3)
+
+            # --- Output FITS filename ---
+            output_filename = f"{planet_name}_{ha_tag_str}_{exp_time}s.fits"
+            output_path = os.path.join(base_path, "out/onaxis", output_filename)
+
+            sim.set_output(output_path, overwrite=True)
+            sim.run()
+            print(f"  ✓ Simulation complete for {planet_file} → {output_filename}")
+
+print("\n=== All simulations complete! ===")
