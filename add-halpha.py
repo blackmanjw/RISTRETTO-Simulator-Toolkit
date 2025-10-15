@@ -3,6 +3,7 @@ import sys
 import os
 import numpy as np
 import matplotlib.pyplot as plt
+import smplotlib
 
 def main():
     if len(sys.argv) != 3:
@@ -70,9 +71,9 @@ def main():
     plt.figure(figsize=(10, 6))
     plt.plot(wl_combined[mask_combined], flux_combined[mask_combined], label="Combined", color="black", linewidth=1.2)
     plt.xlabel("Wavelength (Å)")
-    plt.ylabel("Flux (erg/cm²/s/Å)")
+    plt.ylabel(r"Flux (erg cm$^{-2}$ s$^{-1}$ $\mathrm{\AA}^{-1}$)")
     plt.yscale("log")
-    plt.title("Combined Spectrum (Log Scale, 6200–8400 Å)")
+    plt.title("Combined Spectrum (Log Scale, 6200-8400 Å)")
     plt.legend()
     plt.tight_layout()
     plt.savefig(combined_plot, dpi=300)
@@ -83,7 +84,7 @@ def main():
     plt.figure(figsize=(10, 6))
     plt.plot(wl2, flux2, color="red", label=f"{base2}")
     plt.xlabel("Wavelength (Å)")
-    plt.ylabel("Flux (erg/cm²/s/Å)")
+    plt.ylabel(r"Flux (erg cm$^{-2}$ s$^{-1}$ $\mathrm{\AA}^{-1}$)")
     plt.yscale("log")
     plt.title(f"H-alpha Input Spectrum: {base2}")
     plt.legend()
@@ -99,9 +100,9 @@ def main():
     plt.plot(wl1[mask_inputs_cifist], flux1[mask_inputs_cifist], label=f"{base1}", alpha=0.7)
     plt.plot(wl2[mask_inputs_halpha], flux2[mask_inputs_halpha], label=f"{base2}", alpha=0.7)
     plt.xlabel("Wavelength (Å)")
-    plt.ylabel("Flux (erg/cm²/s/Å)")
+    plt.ylabel(r"Flux (erg cm$^{-2}$ s$^{-1}$ $\mathrm{\AA}^{-1}$)")
     plt.yscale("log")
-    plt.title(f"Input Spectra (Log Scale, 5000–8000 Å): {base1} & {base2}")
+    plt.title(f"Input Spectra (Log Scale, 5000-8000 Å): {base1} & {base2}")
     plt.legend()
     plt.tight_layout()
     plt.savefig(inputs_plot, dpi=300)
