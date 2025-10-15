@@ -114,6 +114,28 @@ for system_name, config in systems.items():
             plt.close(fig)
             print(f"  📊 Plot saved: {combined_plot}")
 
+            # === ✅ Create a second plot showing both star-only and combined spectra ===
+            star_wavelength = star_350e4_data[:, 0]
+            star_flux = star_350e4_data[:, 1]
+
+            fig2, ax2 = plt.subplots(figsize=(10, 6))
+            ax2.plot(star_wavelength, star_flux, color="tab:red", linewidth=1.0, label="Star only")
+            ax2.plot(wavelength, flux, color="black", linewidth=1.0, label="Star + Planet")
+
+            ax2.set_xlabel("Wavelength (Å)")
+            ax2.set_ylabel(r"Flux (ph s$^{-1}$ Å$^{-1}$)")
+            ax2.set_title(f"{planet_name} {ha_tag_str} - Star vs Star+Planet Spectrum")
+            ax2.set_yscale("log")
+            disable_sci_notation(ax2)
+            ax2.legend()
+            fig2.tight_layout()
+
+            combined_plot_with_star = os.path.join(base_path, "in", f"{combined_basename}_combined.png")
+            fig2.savefig(combined_plot_with_star, dpi=300)
+            plt.close(fig2)
+            print(f"  📊 Combined plot saved: {combined_plot_with_star}")
+
+
             # --- Run simulator ---
             sim = Simulator(ZEMAX(spectrograph_model))
             sim.set_ccd(1)
