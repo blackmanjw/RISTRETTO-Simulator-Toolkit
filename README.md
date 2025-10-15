@@ -35,7 +35,7 @@ python makecsv.py WISPIT2_star_BT-Settl-CIFIST-4400K-4logg_140000.txt centralspa
 10. From Ubelix run <code>/storage/homefs/jb23l046/Simu_run/sbatch offaxis.sh</code> and <code>/storage/homefs/jb23l046/Simu_run/sbatch onaxis.sh</code>. This will run the corresponding onaxis.py and offaxis.py files which will batch process all the input files through Pyecehlle., In the on axis-case, we combine the star (0.45 coupling) in Fiber 1 with the Star (coupling 3.5e-4) and the planet (0.45 coupling) in Fiber 2. In the off-axis case we run the star through Fibre 1 (0.45 coupling) and separately run the star (with coupling determined by the off axis separation between 100-600mas) summed with the planet (0.45 coupling). This outputs to /data/out/offaxis and /data/out/onaxis.
 11. Copy files from Ubelix to my PC. <code> scp -r jb23l046@submit03.unibe.ch:/storage/homefs/jb23l046/Simu_run/data/out/offaxis "/Users/odin/toolkit/pychelle_output</code><br><code> scp -r jb23l046@submit03.unibe.ch:/storage/homefs/jb23l046/Simu_run/data/out/onaxis "/Users/odin/toolkit/pychelle_output"</code>.
 12. cp WISPIT2_star_0.45_3600s.fits, PDS70_star_0.45_3600s.fits, 2MJ1612_star_0.45_3600s.fits from offaxis to onaxis folders (this is for the star in the centre spaxel).
-13. 
+13. To run the analysis, run <code>python analysis.py onaxis/PDS70b_Ha_60_12_3600s</code>
 
 #### Also
 
