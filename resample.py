@@ -1,77 +1,124 @@
+#!/usr/bin/env python3
+import sys
+import os
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.ndimage import gaussian_filter1d
-from matplotlib.ticker import ScalarFormatter
-import os
-import argparse
 import smplotlib
+from matplotlib.ticker import ScalarFormatter 
 
-def main():
-    parser = argparse.ArgumentParser(description="Resample spectrum to a target resolution.")
-    parser.add_argument("filename", help="Name of the spectrum file in the input folder")
-    parser.add_argument("--R", type=int, default=140000, help="Target resolution (default: 140000)")
-    args = parser.parse_args()
-
-    input_folder = "input"
-    output_folder = "input"
-
-    # Ensure output folder exists
-    os.makedirs(output_folder, exist_ok=True)
-
-    path = os.path.join(input_folder, args.filename)
-    if not os.path.exists(path):
-        raise FileNotFoundError(f"File '{path}' not found.")
-
-    # Load spectrum
-    wavelength, flux = np.loadtxt(path, unpack=True)
-
-    # Compute sigma for Gaussian smoothing
-    delta_lambda = wavelength / args.R
-    sigma_pixels = delta_lambda / (wavelength[1] - wavelength[0]) / 2.355
-    sigma_median = np.median(sigma_pixels)
-
-    # Smooth flux
-    flux_smoothed = gaussian_filter1d(flux, sigma=sigma_median)
-
-    # Plot result
-    plt.figure(figsize=(10, 5))
-    plt.plot(wavelength, flux, label="Original")
-    plt.plot(wavelength, flux_smoothed, label=f"Resampled (R={args.R})")
-    plt.legend()
-    plt.xlim(6200, 8400)
-
-    # Disable scientific notation on axes
-    ax = plt.gca()
+def disable_sci_notation(ax):
+    """Helper to disable scientific notation on x-axis."""
     ax.xaxis.set_major_formatter(ScalarFormatter(useMathText=False))
     ax.xaxis.get_major_formatter().set_scientific(False)
     ax.xaxis.get_major_formatter().set_useOffset(False)
 
-    # Conditional y-axis limits
-    if "star" in args.filename.lower():
-        plt.ylim(bottom=100000)
-    else:
-        plt.ylim(0.00001, 3e3)
+def main():
+    if len(sys.argv) != 3:
+        print("Usage: python combine_spectra.py <cifist_filename> <halpha_filename>")
+        sys.exit(1)
 
-    plt.yscale('log')
-    plt.xlabel(r"Wavelength ($\mathrm{\AA}$)")
-    plt.ylabel(r"Flux (erg cm$^{-2}$ s$^{-1}$ $\mathrm{\AA}^{-1}$)")
+    cifist_name = sys.argv[1]
+    halpha_name = sys.argv[2]
 
-    # Save figure
-    name, ext = os.path.splitext(args.filename)
-    plot_filename = os.path.join(output_folder, f"{name}_{args.R}.png")
-    plt.savefig(plot_filename, bbox_inches='tight', dpi=300)
-    plt.show()
+    # Hard-coded directory structure
+    cifist_dir = "input"
+    halpha_dir = "Halpha_model"
 
-    # Save resampled spectrum
-    output_filename = os.path.join(output_folder, f"{name}_{args.R}{ext}")
-    np.savetxt(
-        output_filename,
-        np.column_stack([wavelength, flux_smoothed]),
-        fmt=["%.3f", "%.6e"],  # wavelength with 3 decimals, flux in scientific notation
-        header=f"Resampled spectrum at R={args.R}"
-    )
-    print(f"Saved resampled spectrum to {output_filename}")
-    print(f"Saved plot to {plot_filename}")
+    cifist_path = os.path.join(cifist_dir, cifist_name)
+    halpha_path = os.path.join(halpha_dir, halpha_name)
+
+    # Read spectra
+    wl1, flux1 = np.loadtxt(cifist_path, unpack=True)
+    wl2, flux2 = np.loadtxt(halpha_path, unpack=True)
+
+    # Interpolate cifist flux onto halpha wavelength grid (for comparison)
+    flux1_interp_on_halpha = np.interp(wl2, wl1, flux1)
+
+    # Keep only H-alpha points where H-alpha flux > cifist flux
+    mask_keep_halpha = flux2 > flux1_interp_on_halpha
+    wl2_kept = wl2[mask_keep_halpha]
+    flux2_kept = flux2[mask_keep_halpha]
+
+    # Remove cifist points in H-alpha wavelength range
+    wl2_min = wl2_kept.min() if len(wl2_kept) > 0 else wl2.min()
+    wl2_max = wl2_kept.max() if len(wl2_kept) > 0 else wl2.max()
+    mask_keep_cifist = (wl1 < wl2_min) | (wl1 > wl2_max)
+    wl1_clean = wl1[mask_keep_cifist]
+    flux1_clean = flux1[mask_keep_cifist]
+
+    # Combine the spectra
+    wl_combined = np.concatenate([wl1_clean, wl2_kept])
+    flux_combined = np.concatenate([flux1_clean, flux2_kept])
+
+    # Sort by wavelength
+    sorted_idx = np.argsort(wl_combined)
+    wl_combined = wl_combined[sorted_idx]
+    flux_combined = flux_combined[sorted_idx]
+
+    # Output directory = same as CIFIST input dir
+    output_dir = cifist_dir
+    os.makedirs(output_dir, exist_ok=True)
+
+    # Output filenames
+    base1 = os.path.splitext(cifist_name)[0]
+    base2 = os.path.splitext(halpha_name)[0]
+    out_file = os.path.join(output_dir, f"{base1}_{base2}.txt")
+    combined_plot = os.path.join(output_dir, f"{base1}_{base2}.png")
+    halpha_plot = os.path.join(output_dir, f"{base2}_input.png")
+    inputs_plot = os.path.join(output_dir, f"{base1}_{base2}_inputs.png")
+
+    # Save combined spectrum
+    np.savetxt(out_file, np.column_stack([wl_combined, flux_combined]),
+               fmt="%.6f %.6e",
+               header="Wavelength(Angstrom)  Flux(erg/cm2/s/Angstrom)")
+    print(f"Combined spectrum saved to {out_file}")
+
+    # Plot 1: Combined spectrum (log scale, 6200–8400 Å)
+    mask_combined = (wl_combined >= 6200) & (wl_combined <= 8400)
+    fig, ax = plt.subplots(figsize=(10, 6))
+    ax.plot(wl_combined[mask_combined], flux_combined[mask_combined],
+            label="Combined", color="black", linewidth=1.2)
+    ax.set_xlabel("Wavelength (Å)")
+    ax.set_ylabel(r"Flux (erg cm$^{-2}$ s$^{-1}$ $\mathrm{\AA}^{-1}$)")
+    ax.set_yscale("log")
+    ax.set_title("Combined Spectrum (Log Scale, 6200–8400 Å)")
+    ax.legend()
+    disable_sci_notation(ax) 
+    fig.tight_layout()
+    fig.savefig(combined_plot, dpi=300)
+    plt.close(fig)
+    print(f"Combined spectrum plot saved to {combined_plot}")
+
+    # Plot 2: H-alpha input spectrum (full range, log y)
+    fig, ax = plt.subplots(figsize=(10, 6))
+    ax.plot(wl2, flux2, color="red", label=f"{base2}")
+    ax.set_xlabel("Wavelength (Å)")
+    ax.set_ylabel(r"Flux (erg cm$^{-2}$ s$^{-1}$ $\mathrm{\AA}^{-1}$)")
+    ax.set_yscale("log")
+    ax.set_title(f"H-alpha Input Spectrum: {base2}")
+    ax.legend()
+    disable_sci_notation(ax) 
+    fig.tight_layout()
+    fig.savefig(halpha_plot, dpi=300)
+    plt.close(fig)
+    print(f"H-alpha input plot saved to {halpha_plot}")
+
+    # Plot 3: Both inputs together (log y, 5000–8000 Å)
+    mask_inputs_cifist = (wl1 >= 5000) & (wl1 <= 8000)
+    mask_inputs_halpha = (wl2 >= 5000) & (wl2 <= 8000)
+    fig, ax = plt.subplots(figsize=(10, 6))
+    ax.plot(wl1[mask_inputs_cifist], flux1[mask_inputs_cifist], label=f"{base1}", alpha=0.7)
+    ax.plot(wl2[mask_inputs_halpha], flux2[mask_inputs_halpha], label=f"{base2}", alpha=0.7)
+    ax.set_xlabel("Wavelength (Å)")
+    ax.set_ylabel(r"Flux (erg cm$^{-2}$ s$^{-1}$ $\mathrm{\AA}^{-1}$)")
+    ax.set_yscale("log")
+    ax.set_title(f"Input Spectra (Log Scale, 5000–8000 Å): {base1} & {base2}")
+    ax.legend()
+    disable_sci_notation(ax)
+    fig.tight_layout()
+    fig.savefig(inputs_plot, dpi=300)
+    plt.close(fig)
+    print(f"Input spectra plot saved to {inputs_plot}")
 
 if __name__ == "__main__":
     main()
