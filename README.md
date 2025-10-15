@@ -29,12 +29,13 @@ python makecsv.py WISPIT2b_BT-Settl-CIFIST-1400K-4logg_140000_Ha_60_12.txt<br>
 python makecsv.py 2MJ1612_star_BT-Settl-CIFIST-3900K-4logg_140000.txt centralspaxel<br>
 python makecsv.py PDS70_star_BT-Settl-CIFIST-4200K-5logg_140000.txt centralspaxel<br>
 python makecsv.py WISPIT2_star_BT-Settl-CIFIST-4400K-4logg_140000.txt centralspaxel</code>
-7. Test the Pyechelle input with <br><code>python testinput.py WISPIT2b_BT-Settl-CIFIST-1400K-4logg_140000_Ha_60_12_fiber1.csv 1800</code>. This adds noise and scales it to a set exposure time (here 1800s). Adding exposure time is optional. The default is 3600s (1 hour).
-8. Copy all the outputs to the Ubelix server so you can run Pyechelle. <br><code>scp output/*.csv jb23l046@submit03.unibe.ch:/storage/homefs/jb23l046/Simu_run/data/in/</code>
-9. From Ubelix run <code>/storage/homefs/jb23l046/Simu_run/sbatch offaxis.sh</code> and <code>/storage/homefs/jb23l046/Simu_run/sbatch onaxis.sh</code>. This will run the corresponding onaxis.py and offaxis.py files which will batch process all the input files through Pyecehlle., In the on axis-case, we combine the star (0.45 coupling) in Fiber 1 with the Star (coupling 3.5e-4) and the planet (0.45 coupling) in Fiber 2. In the off-axis case we run the star through Fibre 1 (0.45 coupling) and separately run the star (with coupling determined by the off axis separation between 100-600mas) summed with the planet (0.45 coupling). This outputs to /data/out/offaxis and /data/out/onaxis.
-10. Copy files from Ubelix to my PC. <code> scp -r jb23l046@submit03.unibe.ch:/storage/homefs/jb23l046/Simu_run/data/out/offaxis "/Users/odin/toolkit/pychelle_output</code><br><code> scp -r jb23l046@submit03.unibe.ch:/storage/homefs/jb23l046/Simu_run/data/out/onaxis "/Users/odin/toolkit/pychelle_output"</code>.
-11. cp WISPIT2_star_0.45_3600s.fits, PDS70_star_0.45_3600s.fits, 2MJ1612_star_0.45_3600s.fits from offaxis to onaxis folders (this is for the star in the centre spaxel).
-12. 
+<br> You can also just skip all of this and run ./makeall.sh which will do everything (all planets and stars at different separations. You may need to make it executable <code>chmod +x makeall.sh</code>
+8. Test the Pyechelle input with <br><code>python testinput.py WISPIT2b_BT-Settl-CIFIST-1400K-4logg_140000_Ha_60_12_fiber1.csv 1800</code>. This adds noise and scales it to a set exposure time (here 1800s). Adding exposure time is optional. The default is 3600s (1 hour).
+9. Copy all the outputs to the Ubelix server so you can run Pyechelle. <br><code>scp output/*.csv jb23l046@submit03.unibe.ch:/storage/homefs/jb23l046/Simu_run/data/in/</code>
+10. From Ubelix run <code>/storage/homefs/jb23l046/Simu_run/sbatch offaxis.sh</code> and <code>/storage/homefs/jb23l046/Simu_run/sbatch onaxis.sh</code>. This will run the corresponding onaxis.py and offaxis.py files which will batch process all the input files through Pyecehlle., In the on axis-case, we combine the star (0.45 coupling) in Fiber 1 with the Star (coupling 3.5e-4) and the planet (0.45 coupling) in Fiber 2. In the off-axis case we run the star through Fibre 1 (0.45 coupling) and separately run the star (with coupling determined by the off axis separation between 100-600mas) summed with the planet (0.45 coupling). This outputs to /data/out/offaxis and /data/out/onaxis.
+11. Copy files from Ubelix to my PC. <code> scp -r jb23l046@submit03.unibe.ch:/storage/homefs/jb23l046/Simu_run/data/out/offaxis "/Users/odin/toolkit/pychelle_output</code><br><code> scp -r jb23l046@submit03.unibe.ch:/storage/homefs/jb23l046/Simu_run/data/out/onaxis "/Users/odin/toolkit/pychelle_output"</code>.
+12. cp WISPIT2_star_0.45_3600s.fits, PDS70_star_0.45_3600s.fits, 2MJ1612_star_0.45_3600s.fits from offaxis to onaxis folders (this is for the star in the centre spaxel).
+13. 
 
 #### Also
 
