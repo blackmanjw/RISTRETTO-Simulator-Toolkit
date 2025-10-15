@@ -1,12 +1,9 @@
-# To run this: "python resample.py PDS70c_BT-Settl-CIFIST-1300K-4logg.txt --R 140000"
-# where R is the desired resolution. This flag is optional nand will default to 140000.
-#
-# resample.py
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.ndimage import gaussian_filter1d
 import os
 import argparse
+import smplotlib
 
 def main():
     parser = argparse.ArgumentParser(description="Resample spectrum to a target resolution.")
@@ -36,15 +33,21 @@ def main():
     flux_smoothed = gaussian_filter1d(flux, sigma=sigma_median)
 
     # Plot result
-    plt.figure(figsize=(10,5))
+    plt.figure(figsize=(10, 5))
     plt.plot(wavelength, flux, label="Original")
     plt.plot(wavelength, flux_smoothed, label=f"Resampled (R={args.R})")
     plt.legend()
     plt.xlim(6200, 8400)
-    plt.ylim(0.00001, 3e3)
+
+    # Conditional y-axis limits
+    if "star" in args.filename.lower():
+        plt.ylim(bottom=100000)
+    else:
+        plt.ylim(0.00001, 3e3)
+
     plt.yscale('log')
-    plt.xlabel("Wavelength")
-    plt.ylabel("Flux")
+    plt.xlabel(r"Wavelength ($\mathrm{\AA}$)")
+    plt.ylabel(r"Flux (erg cm$^{-2}$ s$^{-1}$ $\mathrm{\AA}^{-1}$)")
 
     # Save figure
     name, ext = os.path.splitext(args.filename)
@@ -54,12 +57,11 @@ def main():
 
     # Save resampled spectrum
     output_filename = os.path.join(output_folder, f"{name}_{args.R}{ext}")
-    # np.savetxt(output_filename, np.column_stack([wavelength, flux_smoothed]))
     np.savetxt(
-    output_filename,
-    np.column_stack([wavelength, flux_smoothed]),
-    fmt=["%.3f", "%.6e"],  # wavelength with 3 decimals, flux in scientific notation
-    header=f"Resampled spectrum at R={args.R}"
+        output_filename,
+        np.column_stack([wavelength, flux_smoothed]),
+        fmt=["%.3f", "%.6e"],  # wavelength with 3 decimals, flux in scientific notation
+        header=f"Resampled spectrum at R={args.R}"
     )
     print(f"Saved resampled spectrum to {output_filename}")
     print(f"Saved plot to {plot_filename}")
