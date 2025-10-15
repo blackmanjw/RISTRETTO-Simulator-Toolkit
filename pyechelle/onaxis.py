@@ -96,7 +96,7 @@ for system_name, config in systems.items():
             np.savetxt(combined_path, combined_data, delimiter=",", fmt="%.6e")
             print(f"  → Combined CSV saved: {combined_path}")
 
-            # === ✅ Plot and save with same filename ===
+            # === ✅ Plot and save combined star+planet only ===
             wavelength = combined_data[:, 0]
             flux = combined_data[:, 1]
 
@@ -114,27 +114,26 @@ for system_name, config in systems.items():
             plt.close(fig)
             print(f"  📊 Plot saved: {combined_plot}")
 
-            # === ✅ Create a second plot showing both star-only and combined spectra ===
-            star_wavelength = star_350e4_data[:, 0]
-            star_flux = star_350e4_data[:, 1]
+            # === ✅ Plot star, planet, and combined ===
+            planet_flux_only = planet_data[:, 1]
 
-            fig2, ax2 = plt.subplots(figsize=(10, 6))
-            ax2.plot(star_wavelength, star_flux, color="tab:red", linewidth=1.0, label="Star only")
-            ax2.plot(wavelength, flux, color="black", linewidth=1.0, label="Star + Planet")
+            fig_combined, ax_combined = plt.subplots(figsize=(10, 6))
+            ax_combined.plot(star_350e4_data[:, 0], star_350e4_data[:, 1], color="tab:red", linewidth=1.0, label="Star only")
+            ax_combined.plot(planet_data[:, 0], planet_flux_only, color="tab:blue", linewidth=1.0, label="Planet only")
+            ax_combined.plot(wavelength, flux, color="black", linewidth=1.0, label="Star + Planet")
 
-            ax2.set_xlabel("Wavelength (Å)")
-            ax2.set_ylabel(r"Flux (ph s$^{-1}$ Å$^{-1}$)")
-            ax2.set_title(f"{planet_name} {ha_tag_str} - Star vs Star+Planet Spectrum")
-            ax2.set_yscale("log")
-            disable_sci_notation(ax2)
-            ax2.legend()
-            fig2.tight_layout()
+            ax_combined.set_xlabel("Wavelength (Å)")
+            ax_combined.set_ylabel(r"Flux (ph s$^{-1}$ Å$^{-1}$)")
+            ax_combined.set_title(f"{planet_name} {ha_tag_str} - Star vs Planet vs Combined Spectrum")
+            ax_combined.set_yscale("log")
+            disable_sci_notation(ax_combined)
+            ax_combined.legend()
+            fig_combined.tight_layout()
 
-            combined_plot_with_star = os.path.join(base_path, "in", f"{combined_basename}_combined.png")
-            fig2.savefig(combined_plot_with_star, dpi=300)
-            plt.close(fig2)
-            print(f"  📊 Combined plot saved: {combined_plot_with_star}")
-
+            combined_plot_path = os.path.join(base_path, "in", f"{combined_basename}_combined.png")
+            fig_combined.savefig(combined_plot_path, dpi=300)
+            plt.close(fig_combined)
+            print(f"  📊 Combined star+planet+planet plot saved: {combined_plot_path}")
 
             # --- Run simulator ---
             sim = Simulator(ZEMAX(spectrograph_model))
