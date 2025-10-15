@@ -1,8 +1,12 @@
+#!/usr/bin/env python3
 from pyechelle.simulator import Simulator
 from pyechelle.spectrograph import ZEMAX
 from pyechelle.sources import CSVSource
 import numpy as np
+import matplotlib.pyplot as plt
+import smplotlib  # ✅ for consistent style
 import os
+from matplotlib.ticker import ScalarFormatter  # ✅ for plain number formatting
 
 # === Common parameters ===
 base_path = '/storage/homefs/jb23l046/Simu_run/data/'
@@ -36,7 +40,7 @@ ha_variations = [
     ("80", "14"),
 ]
 
-# === Function to build filenames ===
+# === Helper functions ===
 def planet_filename(base, ha1, ha2):
     return f"{base}_Ha_{ha1}_{ha2}_0.45.csv"
 
@@ -48,6 +52,12 @@ def extract_ha_tag(filename):
         return "_".join(parts[ha_idx:ha_idx+3])
     except ValueError:
         return "Ha_unknown"
+
+def disable_sci_notation(ax):
+    """Disable scientific notation on x-axis."""
+    ax.xaxis.set_major_formatter(ScalarFormatter(useMathText=False))
+    ax.xaxis.get_major_formatter().set_scientific(False)
+    ax.xaxis.get_major_formatter().set_useOffset(False)
 
 # === Main Loop ===
 for system_name, config in systems.items():
@@ -76,13 +86,33 @@ for system_name, config in systems.items():
             combined_flux = planet_data[:, 1] + star_350e4_data[:, 1]
             combined_data = np.column_stack((planet_data[:, 0], combined_flux))
 
-            # --- Build output file names ---
+            # --- Build output filenames ---
             ha_tag_str = extract_ha_tag(planet_file)
-            planet_name = os.path.basename(planet_base.split('_')[0])  # e.g. "2MJ1612b"
-            combined_file = f"{planet_name}_{ha_tag_str}.csv"
+            planet_name = os.path.basename(planet_base.split('_')[0])  # e.g. "WISPIT2b"
+            combined_basename = f"{planet_name}_star_plus_planet_{ha_tag_str}"
+            combined_file = f"{combined_basename}.csv"
             combined_path = os.path.join(base_path, "in", combined_file)
+
             np.savetxt(combined_path, combined_data, delimiter=",", fmt="%.6e")
             print(f"  → Combined CSV saved: {combined_path}")
+
+            # === ✅ Plot and save with same filename ===
+            wavelength = combined_data[:, 0]
+            flux = combined_data[:, 1]
+
+            fig, ax = plt.subplots(figsize=(10, 6))
+            ax.plot(wavelength, flux, color="black", linewidth=1.0)
+            ax.set_xlabel("Wavelength (Å)")
+            ax.set_ylabel(r"Flux (ph s$^{-1}$ Å$^{-1}$)")
+            ax.set_title(f"{planet_name} {ha_tag_str} - Star + Planet Spectrum")
+            ax.set_yscale("log")
+            disable_sci_notation(ax)
+            fig.tight_layout()
+
+            combined_plot = os.path.join(base_path, "in", f"{combined_basename}.png")
+            fig.savefig(combined_plot, dpi=300)
+            plt.close(fig)
+            print(f"  📊 Plot saved: {combined_plot}")
 
             # --- Run simulator ---
             sim = Simulator(ZEMAX(spectrograph_model))
@@ -99,7 +129,7 @@ for system_name, config in systems.items():
             sim.set_read_noise(3)
 
             # --- Output FITS filename ---
-            output_filename = f"{planet_name}_{ha_tag_str}_{exp_time}s.fits"
+            output_filename = f"{combined_basename}_{exp_time}s.fits"
             output_path = os.path.join(base_path, "out/onaxis", output_filename)
 
             sim.set_output(output_path, overwrite=True)
