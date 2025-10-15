@@ -1,6 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.ndimage import gaussian_filter1d
+from matplotlib.ticker import ScalarFormatter  # 🔹 Added import
+
 import os
 import argparse
 import smplotlib
@@ -38,6 +40,12 @@ def main():
     plt.plot(wavelength, flux_smoothed, label=f"Resampled (R={args.R})")
     plt.legend()
     plt.xlim(6200, 8400)
+
+    # Disable scientific notation on axes
+    ax = plt.gca()
+    ax.xaxis.set_major_formatter(ScalarFormatter(useMathText=False))
+    ax.xaxis.get_major_formatter().set_scientific(False)
+    ax.xaxis.get_major_formatter().set_useOffset(False)
 
     # Conditional y-axis limits
     if "star" in args.filename.lower():
