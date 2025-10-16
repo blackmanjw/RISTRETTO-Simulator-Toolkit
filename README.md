@@ -37,6 +37,11 @@ python makecsv.py WISPIT2_star_BT-Settl-CIFIST-4400K-4logg_140000.txt centralspa
 12. cp WISPIT2_star_0.45_3600s.fits, PDS70_star_0.45_3600s.fits, 2MJ1612_star_0.45_3600s.fits from offaxis to onaxis folders (this is for the star in the centre spaxel).
 13. To run the analysis, run <code>python analysis.py onaxis/PDS70b_Ha_60_12_3600s</code>
 
+Command	Description
+python analysis.py onaxis/PDS70b_Ha_80_14_3600s 2	Normal single-file spectrum
+python analysis.py onaxis/PDS70b_Ha_80_14_3600s 2 all	Plot all 4 Ha variants for that object
+python analysis.py plotall	Make 3 “all” plots (for WISPIT2b, PDS70b, 2MJ1612b) and then combine them into one figure with 3 subplots
+
 #### Also
 
 1. <code> python ao-coupling.py </code> is used to generate the adaptive optics coupling map for the different fibres (1,2, 3-7 averaged). For the off axis case we only consider Fibre 2. The output of this code is <code>ao-coupling/fibre_offaxis_vs_distance.txt</code>. This is read-in and interpolated when running makecsv.py with a specified separation.
