@@ -44,7 +44,7 @@ python analysis.py plotall	Make 3 “all” plots (for WISPIT2b, PDS70b, 2MJ1612
 
 
 16. You can run Lovis original approximate simulation with <code>python simulation_lovis.py</code>. This requires the data in the harps_pds70 and Halpha_model subdirectories.
-17. You can add the stellar H-alpha signal from PDS70 from HARPS with <code>python combine_harps</code>
+17. You can add the stellar H-alpha signal from PDS70 from HARPS with <code>python harps_pds70.py</code>. This will create an output in the input directory that scales the stellar H-alpha signal from the HARPS data and combines it the BT-Settl to make PDS70_star_BT-Settl-CIFIST-4200K-5logg_140000_harps.csv and a number of png plots.
 #### Also
 
 1. <code> python ao-coupling.py </code> is used to generate the adaptive optics coupling map for the different fibres (1,2, 3-7 averaged). For the off axis case we only consider Fibre 2. The output of this code is <code>ao-coupling/fibre_offaxis_vs_distance.txt</code>. This is read-in and interpolated when running makecsv.py with a specified separation.
