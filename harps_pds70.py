@@ -101,13 +101,13 @@ if np.any(blend_out_mask):
 base_name = os.path.splitext(os.path.basename(txt_file))[0]  # e.g., PDS70_star_BT-Settl-CIFIST-4200K-5logg_140000
 output_root = f"{base_name}_harps"
 
-# CSV output
-output_csv = os.path.join(input_dir, f"{output_root}.csv")
+# TXT output
+output_txt = os.path.join(input_dir, f"{output_root}.txt")
 np.savetxt(
-    output_csv,
+    output_txt,
     np.column_stack([wavelength_txt, flux_combined]),
-    delimiter=',',
-    header=f'Wavelength,Flux\n# HARPS scaled by {scale_factor:.4f}\n# Blended region: {replace_start}-{replace_end} Å',
+    fmt='%.6e',  # scientific notation for readability
+    header=f'# Wavelength  Flux\n# HARPS scaled by {scale_factor:.4f}\n# Blended region: {replace_start}-{replace_end} Å',
     comments=''
 )
 
@@ -169,7 +169,7 @@ plt.savefig(os.path.join(input_dir, f"{output_root}_superzoom.png"), dpi=300)
 plt.show()
 
 print("✅ Output files created:")
-print(f"   - {output_root}.csv")
+print(f"   - {output_root}.txt")
 print(f"   - {output_root}_zoomed.png")
 print(f"   - {output_root}_full.png")
 print(f"   - {output_root}_superzoom.png")
