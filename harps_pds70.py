@@ -102,7 +102,7 @@ base_name = os.path.splitext(os.path.basename(txt_file))[0]  # e.g., PDS70_star_
 output_root = f"{base_name}_harps"
 
 # CSV output
-output_csv = os.path.join(input_dir, f"{output_root}_combined.csv")
+output_csv = os.path.join(input_dir, f"{output_root}.csv")
 np.savetxt(
     output_csv,
     np.column_stack([wavelength_txt, flux_combined]),
@@ -173,4 +173,3 @@ print(f"   - {output_root}.csv")
 print(f"   - {output_root}_zoomed.png")
 print(f"   - {output_root}_full.png")
 print(f"   - {output_root}_superzoom.png")
-
