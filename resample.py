@@ -58,12 +58,12 @@ def main():
 
     # Save figure
     name, ext = os.path.splitext(args.filename)
-    plot_filename = os.path.join(output_folder, f"{name}_{args.R}.png")
+    plot_filename = os.path.join(output_folder, f"{name}_{args.R}_orig.png")
     plt.savefig(plot_filename, bbox_inches='tight', dpi=300)
     plt.show()
 
     # Save resampled spectrum
-    output_filename = os.path.join(output_folder, f"{name}_{args.R}{ext}")
+    output_filename = os.path.join(output_folder, f"{name}_{args.R}_orig{ext}")
     np.savetxt(
         output_filename,
         np.column_stack([wavelength, flux_smoothed]),
