@@ -6,6 +6,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import re
 import smplotlib
+from matplotlib.ticker import LogFormatter
+from matplotlib.ticker import FuncFormatter
 
 # --- Handle command-line arguments ---
 if len(sys.argv) != 2:
@@ -59,8 +61,12 @@ for csv_file in csv_files:
     wavelength = data[:, 0]
     flux = data[:, 1]
 
-    # Extract separation label
-    sep_label = re.search(r'(\d+)mas', csv_file).group(1) + " mas"
+    # Extract coupling + separation label from filename
+    label_match = re.search(r'([\d.eE+-]+_\d+mas)\.csv$', csv_file)
+    if label_match:
+        sep_label = label_match.group(1)
+    else:
+        sep_label = "unknown"
 
     # Plot line
     plt.plot(wavelength, flux, linewidth=1.5)
@@ -80,6 +86,7 @@ plt.xlabel("Wavelength (nm)")
 plt.ylabel("Flux (photons/s)")
 plt.title(f"{base_name} Spectra at Different Off-Axis Separations")
 plt.yscale("log")
+plt.gca().yaxis.set_major_formatter(FuncFormatter(lambda y, _: f"{y:g}"))
 plt.tight_layout()
 
 # Save figure
@@ -87,3 +94,4 @@ plot_file = os.path.join(output_dir, f"{base_name}_all_separations.png")
 plt.savefig(plot_file, dpi=150)
 plt.show()
 print(f"Saved combined plot -> {plot_file}")
+
