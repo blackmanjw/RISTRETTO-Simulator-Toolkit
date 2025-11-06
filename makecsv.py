@@ -82,7 +82,6 @@ c = 2.99792458e8
 h = 6.62607015e-34
 pc = 3.08567758128e16
 sun_radius = 695700000
-stellar_distance = 113
 telescope_eff_surface = 49.3
 sun_radius = 695700000             # meters
 jupiter_radius = 69911e3           # meters
@@ -98,24 +97,31 @@ fname_lower = filename.lower()
 
 if "pds70_star" in fname_lower:
     stellar_radius = 1.26 * sun_radius
+    stellar_distance = 113.4
     radius_label = "1.26 R☉"
 elif "pds70b" in fname_lower:
     stellar_radius = 2.0 * jupiter_radius
+    stellar_distance = 113.4
     radius_label = "2.0 R_Jup"
 elif "pds70c" in fname_lower:
     stellar_radius = 1.6 * jupiter_radius
+    stellar_distance = 113.4
     radius_label = "1.6 R_Jup"
 elif "wispit2b" in fname_lower:
     stellar_radius = 1.6 * jupiter_radius
+    stellar_distance = 133
     radius_label = "1.6 R_Jup"
 elif "2mj1612b" in fname_lower:
     stellar_radius = 1.5 * jupiter_radius
+    stellar_distance = 131.9
     radius_label = "1.5 R_Jup"
 elif "2mj1612_star" in fname_lower:
     stellar_radius = 1.2 * sun_radius
+    stellar_distance = 131.9
     radius_label = "1.2 R☉"
 elif "wispit2_star" in fname_lower:
     stellar_radius = 1.418 * sun_radius
+    stellar_distance = 133
     radius_label = "1.418 R☉"
 
 print(f"→ Stellar radius set to {stellar_radius:.3e} m ({radius_label}) for '{filename_base}'")
