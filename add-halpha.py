@@ -22,10 +22,33 @@ def main():
 
     # Hard-coded directory structure
     cifist_dir = "input"
-    halpha_dir = "Halpha_model"
-
     cifist_path = os.path.join(cifist_dir, cifist_name)
+
+    # Hard-coded directory structure
+    halpha_base_dir = "Halpha_model"
+
+    # Choose subdirectory based on filename keywords
+    scaled_subdir = None
+    lower_name = cifist_name.lower()
+
+    if "pds70b" in lower_name:
+        scaled_subdir = "scaled/pds70b"
+    elif "pds70c" in lower_name:
+        scaled_subdir = "scaled/pds70c"
+    elif "wispit2" in lower_name:
+        scaled_subdir = "scaled/WISPIT2"
+    elif "2mj1612b" in lower_name:
+        scaled_subdir = "scaled/2MJ1612b"
+
+    if scaled_subdir:
+        halpha_dir = os.path.join(halpha_base_dir, scaled_subdir)
+    else:
+        halpha_dir = halpha_base_dir
+
     halpha_path = os.path.join(halpha_dir, halpha_name)
+
+    # Print the chosen H-alpha directory for clarity
+    print(f"Full H-alpha file path: {halpha_path}")
 
     # Read spectra
     wl1, flux1 = np.loadtxt(cifist_path, unpack=True)
