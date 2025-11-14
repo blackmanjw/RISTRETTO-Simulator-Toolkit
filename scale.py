@@ -1,27 +1,23 @@
 import numpy as np
 import os
 import matplotlib.pyplot as plt
-
 # =========================
 # User settings
 # =========================
 plot_flag = True          # Set True to plot each file
+show_plots = False        # Set True to display plots interactively with plt.show()
 use_trapz = False         # Set True to use np.trapz, False to use sum()/dl method
-
 # Constants
 pc_to_cm = 3.086e18
 R_jupiter = 7.1492e9  # cm
-
 # Files and stars
 input_files = ['Ha_60_14.dat', 'Ha_60_12.dat', 'Ha_80_14.dat', 'Ha_80_12.dat']
-
 stars = {
     'pds70b': {'d_pc': 113.4, 'R_star': 2.0 * R_jupiter,'halpha_flux': 8.1e-16},
     'pds70c': {'d_pc': 113.4, 'R_star': 1.6 * R_jupiter,'halpha_flux': 3.1e-16},
     'WISPIT2': {'d_pc': 133.0, 'R_star': 1.6 * R_jupiter,'halpha_flux': 1.38e-15},
     '2MJ1612b': {'d_pc': 131.9, 'R_star': 1.5 * R_jupiter,'halpha_flux': 8.2e-16}
 }
-
 # =========================
 # Processing loop
 # =========================
@@ -95,4 +91,7 @@ for star_name, params in stars.items():
             plt.legend()
             plt.grid(True)
             plt.tight_layout()
-            plt.show()
+            if show_plots:
+                plt.show()
+            else:
+                plt.close()
