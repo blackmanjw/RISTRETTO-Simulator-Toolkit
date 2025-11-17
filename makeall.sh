@@ -11,9 +11,9 @@ python makecsv.py 2MJ1612_star_BT-Settl-CIFIST-3900K-4logg_140000.txt
 python makecsv.py PDS70_star_BT-Settl-CIFIST-4200K-5logg_140000.txt
 python makecsv.py WISPIT2_star_BT-Settl-CIFIST-4400K-4logg_140000.txt
 
-python makecsv_batch.py 2MJ1612_star_BT-Settl-CIFIST-3900K-4logg_140000.txt
-python makecsv_batch.py PDS70_star_BT-Settl-CIFIST-4200K-5logg_140000.txt
-python makecsv_batch.py WISPIT2_star_BT-Settl-CIFIST-4400K-4logg_140000.txt
+python makecsv_batch.py 2MJ1612_star_BT-Settl-CIFIST-3900K-4logg_140000.txt --noshow
+python makecsv_batch.py PDS70_star_BT-Settl-CIFIST-4200K-5logg_140000.txt --noshow
+python makecsv_batch.py WISPIT2_star_BT-Settl-CIFIST-4400K-4logg_140000.txt --noshow
 
 # Planets (repeat for multiple Ha profiles)
 halphas=(
