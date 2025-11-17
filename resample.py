@@ -10,6 +10,7 @@ def main():
     parser = argparse.ArgumentParser(description="Resample spectrum to a target resolution.")
     parser.add_argument("filename", help="Name of the spectrum file in the input folder")
     parser.add_argument("--R", type=int, default=140000, help="Target resolution (default: 140000)")
+    parser.add_argument("--no-show", action="store_true", help="Do not display the plot interactively")
     args = parser.parse_args()
 
     input_folder = "input"
@@ -56,14 +57,27 @@ def main():
     plt.xlabel(r"Wavelength ($\mathrm{\AA}$)")
     plt.ylabel(r"Flux (erg cm$^{-2}$ s$^{-1}$ $\mathrm{\AA}^{-1}$)")
 
+    # Determine if _orig should be included
+    special_objects = ["2MJ1612b", "PDS70b", "PDS70c", "WISPIT2b"]
+    use_orig = not any(obj in args.filename for obj in special_objects)
+
     # Save figure
     name, ext = os.path.splitext(args.filename)
-    plot_filename = os.path.join(output_folder, f"{name}_{args.R}_orig.png")
+    if use_orig:
+        plot_filename = os.path.join(output_folder, f"{name}_{args.R}_orig.png")
+    else:
+        plot_filename = os.path.join(output_folder, f"{name}_{args.R}.png")
     plt.savefig(plot_filename, bbox_inches='tight', dpi=300)
-    plt.show()
+
+    # Show plot only if not suppressed
+    if not args.no_show:
+        plt.show()
 
     # Save resampled spectrum
-    output_filename = os.path.join(output_folder, f"{name}_{args.R}_orig{ext}")
+    if use_orig:
+        output_filename = os.path.join(output_folder, f"{name}_{args.R}_orig{ext}")
+    else:
+        output_filename = os.path.join(output_folder, f"{name}_{args.R}{ext}")
     np.savetxt(
         output_filename,
         np.column_stack([wavelength, flux_smoothed]),
