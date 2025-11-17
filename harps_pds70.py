@@ -1,288 +1,258 @@
 import numpy as np
-import matplotlib.pyplot as plt
-from matplotlib.ticker import ScalarFormatter
+from scipy.interpolate import CubicSpline, PchipInterpolator, interp1d
 import os
+import sys
+import matplotlib
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
+import smplotlib
 
-# ---------------------------------
-# File paths
-# ---------------------------------
-input_dir = 'input'
-csv_file = os.path.join(input_dir, 'pds70_harps.csv')
+############################
+# Handle arguments
+############################
+if len(sys.argv) < 2 or len(sys.argv) > 3:
+    print("Usage: python makecsv.py filename.txt [separation_mas]")
+    sys.exit(1)
 
-txt_files = [
-    'PDS70_star_BT-Settl-CIFIST-4200K-5logg_140000_orig.txt',
-    '2MJ1612_star_BT-Settl-CIFIST-3900K-4logg_140000_orig.txt',
-    'WISPIT2_star_BT-Settl-CIFIST-4400K-4logg_140000_orig.txt'
-]
+filename = sys.argv[1]
+separation_mas = None
 
-# ---------------------------------
-# Safety checks
-# ---------------------------------
-if not os.path.exists(csv_file):
-    raise FileNotFoundError(f"HARPS CSV file not found: {csv_file}")
+# Parse optional argument (separation)
+if len(sys.argv) == 3:
+    try:
+        separation_mas = float(sys.argv[2])
+        separation_arcsec = separation_mas / 1000.0
+    except ValueError:
+        print(f"Warning: Unrecognized argument '{sys.argv[2]}' (ignored).")
 
-# Load HARPS data once
-data_csv = np.loadtxt(csv_file, delimiter=',', skiprows=1)
-wavelength_csv = data_csv[:, 0]
-flux_csv = data_csv[:, 1]
+# Input directory
+input_dir = os.path.join(os.getcwd(), "input")
+input_file = os.path.join(input_dir, filename)
+if not os.path.exists(input_file):
+    print(f"Error: {input_file} not found.")
+    sys.exit(1)
 
-# ---------------------------------
-# Colors for plotting
-# ---------------------------------
-colors_model = ['red', 'blue', 'orange']
-colors_combined = ['purple', 'green', 'brown']
+filename_base = os.path.splitext(os.path.basename(filename))[0]
 
-# ---------------------------------
-# Loop through all TXT files
-# ---------------------------------
-for i, txt_name in enumerate(txt_files):
-    txt_file = os.path.join(input_dir, txt_name)
-    
-    if not os.path.exists(txt_file):
-        print(f"⚠️ Model TXT file not found, skipping: {txt_file}")
-        continue
+# Output directories
+output_dir = os.path.join(os.getcwd(), "output")
+os.makedirs(output_dir, exist_ok=True)
+raw_dir = os.path.join(output_dir, "raw")
+os.makedirs(raw_dir, exist_ok=True)
 
-    data_txt = np.loadtxt(txt_file, comments='#')
-    wavelength_txt = data_txt[:, 0]
-    flux_txt = data_txt[:, 1]
+# --------------------------
+# Transmission function RISTRETTO, without Nico coupling maps 
+# --------------------------
+T_0 = 96.6e-2 # Atmosphere transmission lost
+T_1 = 61.2e-2 # Alluminium mirror coating
+T_2 = 68.1e-2   # Front-end optical transmission
+T_5 = 93.3e-2 # Raw Fiber Transmission
+T_6 = 95.5e-2 # 3d printed Lens Transmission
+T_7 = 43.9e-2 # Spectrograph efficiency
+T_3 = 40e-2  # AO performances
+T_4 = 40e-2 # Coronograph performances
+T_34= 40e-2
 
-    # ---------------------------------
-    # Determine scaling factor near Hα
-    # ---------------------------------
-    region_mask_model = (wavelength_txt > 6550) & (wavelength_txt < 6557)
-    region_mask_harps = (wavelength_csv > 6550) & (wavelength_csv < 6557)
-    if np.any(region_mask_model) and np.any(region_mask_harps):
-        scale_factor = np.median(flux_txt[region_mask_model]) / np.median(flux_csv[region_mask_harps])
-    else:
-        scale_factor = 0.025  # fallback
-    print(f"{txt_name}: Using HARPS scaling factor: {scale_factor:.4f}")
+partial_efficiency= T_0*T_1*T_2*T_5*T_6*T_7
+print(f"Total transmission in optimal conditions: {partial_efficiency*100:.2f} %")
 
-    # ---------------------------------
-    # Replace Hα region (6557–6565.6 Å) in BT-Settl with HARPS data
-    # ---------------------------------
-    transition_start = 6557
-    transition_end = 6565.6
+############################
+# Load spectrum
+############################
+wave_star_restFrame, spec_star_erg = np.loadtxt(input_file, unpack=True)
+mask = (wave_star_restFrame >= 6000) & (wave_star_restFrame <= 8600)
+wave_star_restFrame = wave_star_restFrame[mask] / 10  ## convert from A to nm
+spec_star_erg = spec_star_erg[mask] # erg/s/cm2/A
+spec_star_erg = spec_star_erg * 1e8 # erg/s/cm2/cm
 
-    harps_region_mask = (wavelength_csv >= transition_start) & (wavelength_csv <= transition_end)
-    wavelength_harps_region = wavelength_csv[harps_region_mask]
-    flux_harps_region = flux_csv[harps_region_mask] * scale_factor
+############################
+# Save raw spectrum
+############################
+wavelength_str = [f"{w:.3f}" for w in wave_star_restFrame]
+flux_str = [f"{f:.6e}" for f in spec_star_erg]
+data = np.column_stack((wavelength_str, flux_str))
 
-    harps_interp = np.interp(
-        wavelength_txt,
-        wavelength_harps_region,
-        flux_harps_region,
-        left=np.nan,
-        right=np.nan
-    )
+csv_outfile = os.path.join(raw_dir, f"{filename_base}.csv")
+np.savetxt(csv_outfile, data, delimiter=",", header="wavelength_nm,flux", comments="", fmt="%s")
 
-    flux_combined = flux_txt.copy()
+############################
+# Photon flux calc
+############################
+c = 2.99792458e8
+h = 6.62607015e-34
+pc = 3.08567758128e16
+sun_radius = 695700000
+telescope_eff_surface = 49.3
+sun_radius = 695700000             # meters
+jupiter_radius = 69911e3           # meters
 
-    replace_start = 6558.0
-    replace_end = 6565.4
+########## SET RADIUS ACCORDING TO INPUT FILE
 
-    blend_mask = (wavelength_txt >= transition_start) & (wavelength_txt < replace_start)
-    replace_mask = (wavelength_txt >= replace_start) & (wavelength_txt <= replace_end)
-    blend_out_mask = (wavelength_txt > replace_end) & (wavelength_txt <= transition_end)
+# Default radius (PDS70 star)
+stellar_radius = 1.26 * sun_radius
+radius_label = "1.26 R☉ (default)"
 
-    if np.any(blend_mask):
-        weights_in = (wavelength_txt[blend_mask] - transition_start) / (replace_start - transition_start)
-        flux_combined[blend_mask] = (1 - weights_in) * flux_txt[blend_mask] + weights_in * harps_interp[blend_mask]
-    if np.any(replace_mask):
-        flux_combined[replace_mask] = harps_interp[replace_mask]
-    if np.any(blend_out_mask):
-        weights_out = (wavelength_txt[blend_out_mask] - replace_end) / (transition_end - replace_end)
-        flux_combined[blend_out_mask] = (1 - weights_out) * harps_interp[blend_out_mask] + weights_out * flux_txt[blend_out_mask]
+# Determine object type from filename
+fname_lower = filename.lower()
 
-    # ---------------------------------
-    # Define output TXT filename (drop '_orig')
-    # ---------------------------------
-    base_name = os.path.basename(txt_file)
-    plot_base_name = os.path.splitext(base_name)[0].replace('_orig', '')
-    output_txt = os.path.join(input_dir, f"{plot_base_name}.txt")
+if "pds70_star" in fname_lower:
+    stellar_radius = 1.26 * sun_radius
+    stellar_distance = 113.4
+    radius_label = "1.26 R☉"
+elif "pds70b" in fname_lower:
+    stellar_radius = 2.0 * jupiter_radius
+    stellar_distance = 113.4
+    radius_label = "2.0 R_Jup"
+elif "pds70c" in fname_lower:
+    stellar_radius = 1.6 * jupiter_radius
+    stellar_distance = 113.4
+    radius_label = "1.6 R_Jup"
+elif "wispit2b" in fname_lower:
+    stellar_radius = 1.6 * jupiter_radius
+    stellar_distance = 133
+    radius_label = "1.6 R_Jup"
+elif "2mj1612b" in fname_lower:
+    stellar_radius = 1.5 * jupiter_radius
+    stellar_distance = 131.9
+    radius_label = "1.5 R_Jup"
+elif "2mj1612_star" in fname_lower:
+    stellar_radius = 1.2 * sun_radius
+    stellar_distance = 131.9
+    radius_label = "1.2 R☉"
+elif "wispit2_star" in fname_lower:
+    stellar_radius = 1.418 * sun_radius
+    stellar_distance = 133
+    radius_label = "1.418 R☉"
 
-    # Custom header
-    header_text = (
-        f"# {plot_base_name} plus H-alpha peak from HARPS spectrum ({os.path.basename(csv_file)})\n"
-        f"# Wavelength  Flux\n"
-        f"# HARPS scaled by {scale_factor:.4f}\n"
-        f"# Blended region: {replace_start}-{replace_end} Å"
-    )
+print(f"→ Stellar radius set to {stellar_radius:.3e} m ({radius_label}) for '{filename_base}'")
 
-    # Save combined TXT
-    np.savetxt(
-        output_txt,
-        np.column_stack([wavelength_txt, flux_combined]),
-        fmt='%.6e',
-        header=header_text,
-        comments=''
-    )
+###############################
 
-    print(f"✅ Output TXT created: {output_txt}")
+spec_star             = spec_star_erg / 1e7                                    # J/s/cm2/cm
+spec_star             = spec_star / (h * c / (wave_star_restFrame * 1e-9))     # photons/s/cm2/cm
+spec_star             = spec_star * 1e4                                        # photons/s/m2/cm
+spec_star             = spec_star * 4 * np.pi * stellar_radius**2              # photons/s/cm (total emitted flux, using PHOENIX radius, close to Proxima empirical luminosity of 5.93e30 erg/s)
+spec_star             = spec_star / (4 * np.pi * (stellar_distance * pc)**2)   # photons/s/m2/cm (flux received at Earth)
+spec_star             = spec_star * telescope_eff_surface                      # photons/s/cm  (flux entering the telescope)
+spec_star             = spec_star*partial_efficiency/ 1e8                      # photons/s/angstrom
+spec_star_ph          = spec_star.copy()
 
-    # ---------------------------------
-    # Plot 1: Zoomed Hα region (6500–6650 Å)
-    # ---------------------------------
-    x_min, x_max = 6500, 6650
-    plt.figure(figsize=(10, 6))
-    plt.plot(wavelength_csv, flux_csv, label='HARPS Data', color='blue', alpha=0.5)
-    plt.plot(wavelength_csv, flux_csv * scale_factor, label=f'HARPS × {scale_factor:.3f}', color='green', alpha=0.5)
-    plt.plot(wavelength_txt, flux_txt, label='BT-Settl Model', color='red', alpha=0.4)
-    plt.plot(wavelength_txt, flux_combined, label='Combined Spectrum', color='purple', linewidth=2)
-    plt.axvspan(transition_start, transition_end, color='grey', alpha=0.2, label='Blended Region')
-    plt.xlabel('Wavelength [Å]')
-    plt.ylabel('Flux')
-    plt.xlim(x_min, x_max)
-    plt.yscale('log')
-    
-    # Auto-scale y-limits based on data in range
-    mask_combined = (wavelength_txt >= x_min) & (wavelength_txt <= x_max)
-    mask_harps = (wavelength_csv >= x_min) & (wavelength_csv <= x_max)
-    all_flux = np.concatenate([flux_combined[mask_combined], flux_txt[mask_combined], flux_csv[mask_harps]*scale_factor])
-    plt.ylim(all_flux.min()*0.9, all_flux.max()*1.1)
-    
-    plt.title(f'{plot_base_name} - Hα Zoom')
-    plt.legend()
-    plt.grid(True, which='both', ls='--', alpha=0.5)
-    plt.tight_layout()
-    plt.savefig(os.path.join(input_dir, f"{plot_base_name}_zoomed.png"), dpi=300)
-    plt.close()
-    
-    # ---------------------------------
-    # Plot 2: Extended range (6200–8600 Å)
-    # ---------------------------------
-    x_min, x_max = 6200, 8600
-    plt.figure(figsize=(12, 6))
-    plt.plot(wavelength_txt, flux_txt, color='red', alpha=0.3, label='BT-Settl Model')
-    plt.plot(wavelength_txt, flux_combined, color='purple', linewidth=1.5, label='Combined Spectrum')
-    plt.axvspan(transition_start, transition_end, color='grey', alpha=0.2, label='Hα Blended Region')
-    plt.xlabel('Wavelength [Å]')
-    plt.ylabel('Flux')
-    plt.xlim(x_min, x_max)
-    plt.yscale('log')
-    
-    mask_combined = (wavelength_txt >= x_min) & (wavelength_txt <= x_max)
-    all_flux = np.concatenate([flux_combined[mask_combined], flux_txt[mask_combined]])
-    plt.ylim(all_flux.min()*0.9, all_flux.max()*1.1)
-    
-    plt.title(f'{plot_base_name} - Full Spectrum')
-    plt.grid(True, which='both', ls='--', alpha=0.5)
-    plt.legend()
-    plt.tight_layout()
-    plt.savefig(os.path.join(input_dir, f"{plot_base_name}_full.png"), dpi=300)
-    plt.close()
-    
-    # ---------------------------------
-    # Plot 3: Hα Super-Zoom (6550–6575 Å)
-    # ---------------------------------
-    x_min, x_max = 6550, 6575
-    plt.figure(figsize=(12, 6))
-    plt.plot(wavelength_txt, flux_txt, color='red', alpha=0.3, label='BT-Settl Model')
-    plt.plot(wavelength_txt, flux_combined, color='purple', linewidth=1.5, label='Combined Spectrum')
-    plt.plot(wavelength_csv, flux_csv * scale_factor, color='green', alpha=0.5, linestyle='--', label=f'HARPS × {scale_factor:.3f}')
-    plt.axvspan(transition_start, transition_end, color='grey', alpha=0.2, label='Hα Blended Region')
-    plt.xlabel('Wavelength [Å]')
-    plt.ylabel('Flux')
-    plt.xlim(x_min, x_max)
-    plt.yscale('log')
-    
-    mask_combined = (wavelength_txt >= x_min) & (wavelength_txt <= x_max)
-    mask_harps = (wavelength_csv >= x_min) & (wavelength_csv <= x_max)
-    all_flux = np.concatenate([flux_combined[mask_combined], flux_txt[mask_combined], flux_csv[mask_harps]*scale_factor])
-    plt.ylim(all_flux.min()*0.9, all_flux.max()*1.1)
-    
-    plt.title(f'{plot_base_name} - Hα Super-Zoom')
-    plt.grid(True, which='both', ls='--', alpha=0.5)
-    plt.legend()
-    plt.tight_layout()
-    plt.savefig(os.path.join(input_dir, f"{plot_base_name}_superzoom.png"), dpi=300)
-    plt.close()
+# Plot photon flux
+plt.figure(figsize=(10,5))
+plt.plot(wave_star_restFrame, spec_star_ph[:len(wave_star_restFrame)], color='red')
+plt.xlabel("Wavelength (nm)")
+plt.ylabel("Flux (photons/s/Å)")
+plt.title("Photon Flux after Telescope + Efficiency Corrections")
+plt.grid(True)
+plt.ticklabel_format(style='plain')
+plt.savefig("test.png", dpi=150)
 
+############################
+# Plot flux at telescope (erg/s/cm²/Å)
+############################
+# Convert from stellar surface flux (spec_star_erg) to flux at telescope
+# Apply scaling by (R*/d)²
+flux_at_telescope = spec_star_erg * (stellar_radius / (stellar_distance * pc))**2
 
-    print(f"✅ Plots created for: {plot_base_name}\n")
-
-# ---------------------------------
-# Comparison figure across all models (Hα zoom)
-# ---------------------------------
-x_min, x_max = 6500, 6575
-plt.figure(figsize=(14, 6))
-
-all_fluxes = []  # will collect all flux values in the plotted range
-
-for i, txt_name in enumerate(txt_files):
-    txt_file = os.path.join(input_dir, txt_name)
-    if not os.path.exists(txt_file):
-        continue
-
-    data_txt = np.loadtxt(txt_file, comments='#')
-    wavelength_txt = data_txt[:, 0]
-    flux_txt = data_txt[:, 1]
-
-    # Determine scaling factor near Hα
-    region_mask_model = (wavelength_txt > 6550) & (wavelength_txt < 6557)
-    region_mask_harps = (wavelength_csv > 6550) & (wavelength_csv < 6557)
-    if np.any(region_mask_model) and np.any(region_mask_harps):
-        scale_factor = np.median(flux_txt[region_mask_model]) / np.median(flux_csv[region_mask_harps])
-    else:
-        scale_factor = 0.025
-
-    # Replace Hα region
-    transition_start = 6557
-    transition_end = 6565.6
-    harps_region_mask = (wavelength_csv >= transition_start) & (wavelength_csv <= transition_end)
-    wavelength_harps_region = wavelength_csv[harps_region_mask]
-    flux_harps_region = flux_csv[harps_region_mask] * scale_factor
-    harps_interp = np.interp(wavelength_txt, wavelength_harps_region, flux_harps_region, left=np.nan, right=np.nan)
-
-    flux_combined = flux_txt.copy()
-    replace_start = 6558.0
-    replace_end = 6565.4
-    blend_mask = (wavelength_txt >= transition_start) & (wavelength_txt < replace_start)
-    replace_mask = (wavelength_txt >= replace_start) & (wavelength_txt <= replace_end)
-    blend_out_mask = (wavelength_txt > replace_end) & (wavelength_txt <= transition_end)
-
-    if np.any(blend_mask):
-        weights_in = (wavelength_txt[blend_mask] - transition_start) / (replace_start - transition_start)
-        flux_combined[blend_mask] = (1 - weights_in) * flux_txt[blend_mask] + weights_in * harps_interp[blend_mask]
-    if np.any(replace_mask):
-        flux_combined[replace_mask] = harps_interp[replace_mask]
-    if np.any(blend_out_mask):
-        weights_out = (wavelength_txt[blend_out_mask] - replace_end) / (transition_end - replace_end)
-        flux_combined[blend_out_mask] = (1 - weights_out) * harps_interp[blend_out_mask] + weights_out * flux_txt[blend_out_mask]
-
-    # Clean base name
-    base_name = os.path.basename(txt_file)
-    plot_base_name = os.path.splitext(base_name)[0].replace('_orig', '')
-
-    # Plot original model and combined
-    plt.plot(wavelength_txt, flux_txt, color=colors_model[i], alpha=0.4, label=f'{plot_base_name} (model)')
-    plt.plot(wavelength_txt, flux_combined, color=colors_combined[i], linewidth=1.5, label=f'{plot_base_name} (Hα blended)')
-
-    # Collect flux values in the x-range for auto-scaling
-    mask_combined = (wavelength_txt >= x_min) & (wavelength_txt <= x_max)
-    mask_harps = (wavelength_csv >= x_min) & (wavelength_csv <= x_max)
-    all_fluxes.append(flux_txt[mask_combined])
-    all_fluxes.append(flux_combined[mask_combined])
-    all_fluxes.append(flux_csv[mask_harps] * scale_factor)
-
-# Concatenate all flux values in range
-all_fluxes = np.concatenate(all_fluxes)
-
-# Plot scaled HARPS
-plt.plot(wavelength_csv, flux_csv * scale_factor, color='black', linestyle='--', label='HARPS scaled', alpha=0.5)
-
-plt.xlabel('Wavelength [Å]')
-plt.ylabel('Flux')
-plt.title('Comparison of Models with Hα Blending')
-plt.xlim(x_min, x_max)
-plt.yscale('log')
-
-# Auto-scale y-axis with 10% padding
-plt.ylim(all_fluxes.min() * 0.9, all_fluxes.max() * 1.1)
-
-plt.grid(True, which='both', ls='--', alpha=0.5)
-plt.legend()
+# Plot and save
+plt.figure(figsize=(8, 5))
+plt.plot(wave_star_restFrame, flux_at_telescope, color='tab:blue', lw=1)
+plt.xlabel("Wavelength (nm)")
+plt.ylabel("Flux (erg s$^{-1}$ cm$^{-2}$ Å$^{-1}$)")
+plt.title(f"Flux at Telescope for {filename_base}")
+plt.ticklabel_format(style='plain')
+plt.yscale("log")
 plt.tight_layout()
-plt.savefig(os.path.join(input_dir, "comparison_Ha_blended.png"), dpi=300)
-plt.show()
 
-print("✅ Comparison figure created: comparison_Ha_blended.png")
+flux_plot_outfile = os.path.join(input_dir, f"{filename_base}_fluxattelescope.png")
+plt.savefig(flux_plot_outfile, dpi=150)
+plt.close()
+
+print(f"Saved flux-at-telescope plot -> {flux_plot_outfile}")
+
+############################
+# Resampling
+############################
+minim_wave, max_wavele, max_cut, sampling = 610, 850, 150, 0.35
+logwave = np.arange(np.log10(minim_wave), np.log10(max_wavele),
+                    np.log10(1.0 + sampling / 2.99792458e5))
+wavelength_grid_angstroms = 10**logwave
+wave = wavelength_grid_angstroms[100:-max_cut]
+spec_star_ph = PchipInterpolator(wave_star_restFrame, spec_star_ph)(wavelength_grid_angstroms)
+
+############################
+# Coupling logic
+############################
+# Default coupling list: always include 0.45
+coupling_list = [0.45]
+
+# If it's a star and no separation, also run 3.5e-4
+if "star" in filename.lower() and separation_mas is None:
+    coupling_list.append(3.5e-4)
+
+# If separation specified, compute coupling from file (overrides others)
+if separation_mas is not None:
+    offaxis_file = "ao-coupling/fibre_offaxis_vs_distance_pchip.txt"
+    if os.path.exists(offaxis_file):
+        offaxis_data = np.loadtxt(offaxis_file)
+        distances = offaxis_data[:, 0]
+        couplings = offaxis_data[:, 1]
+        interp_func = interp1d(distances, couplings, bounds_error=False, fill_value="extrapolate")
+        coup_value = float(interp_func(separation_mas / 1000.0))
+        coupling_list = [coup_value]
+        print(f"Off-axis observation at {separation_mas:.0f} mas -> coupling {coup_value:.3e}")
+    else:
+        print("Warning: AO coupling file not found. Using default 3.5e-4")
+        coupling_list = [3.5e-4]
+
+############################
+# Run for each coupling
+############################
+for coup_object in coupling_list:
+    if 0.4 <= coup_object <= 0.6:
+        coup_str = f"{coup_object:.2f}"
+    else:
+        coup_str = f"{coup_object:.2e}"
+
+    append_str = f"{coup_str}"
+    if separation_mas is not None:
+        append_str = f"{coup_str}_{int(separation_mas)}mas"
+
+    fiber_outfile = os.path.join(output_dir, f"{filename_base}_{append_str}.csv")
+    png_outfile = os.path.join(output_dir, f"{filename_base}_{append_str}.png")
+
+    print("\n============================")
+    print(f"Coupling: {coup_object:.4e}")
+    if separation_mas is not None:
+        print(f"Separation: {separation_mas:.0f} mas")
+    print(f"Raw Spectrum CSV:  {csv_outfile}")
+    print(f"Output CSV:        {fiber_outfile}")
+    print(f"Output Plot:       {png_outfile}")
+    print("============================\n")
+
+    fiber_flux = CubicSpline(wavelength_grid_angstroms, spec_star_ph)(wavelength_grid_angstroms) * coup_object
+
+    with open(fiber_outfile, "w") as f:
+        for j in range(len(wave)):
+            f.write(f"{wave[j]:.3f},{fiber_flux[j]:.6e}\n")
+
+    plt.figure(figsize=(8, 5))
+    plt.plot(wave, fiber_flux[:len(wave)], label=f"Coupling={coup_str}")
+    plt.xlabel("Wavelength (nm)")
+    plt.ylabel("Flux (photons/s)")
+    plt.ticklabel_format(style='plain')
+    #plt.yscale("log")
+    plt.title(f"Spectrum for {filename_base} ({coup_str})")
+    plt.legend()
+    plt.tight_layout()
+
+    # Restrict x-axis for non-star objects
+    if "star" not in filename.lower():
+        plt.xlim(655.5, 657.0)
+
+    plt.savefig(png_outfile, dpi=150)
+    plt.close()
+
+    print(f"Saved -> {fiber_outfile} and {png_outfile}")
+
+print("\nAll done!\n")
