@@ -9,6 +9,12 @@ import smplotlib
 from matplotlib.ticker import LogFormatter
 from matplotlib.ticker import FuncFormatter
 
+# --- Optional flag: suppress plt.show() ---
+suppress_show = False
+if "--noshow" in sys.argv:
+    suppress_show = True
+    sys.argv.remove("--noshow")
+
 # --- Handle command-line arguments ---
 if len(sys.argv) != 2:
     print("Usage: python run_makecsv_and_plot.py <input_file.txt>")
@@ -92,6 +98,10 @@ plt.tight_layout()
 # Save figure
 plot_file = os.path.join(output_dir, f"{base_name}_all_separations.png")
 plt.savefig(plot_file, dpi=150)
-plt.show()
+
+if not suppress_show:
+    plt.show()
+
 print(f"Saved combined plot -> {plot_file}")
+
 
