@@ -13,7 +13,12 @@ The file BHAC15_tracks+structure include tracks and some information on the inte
 
 ## RISTRETTO simulation procedure (Summary)
 1. Run ./run.sh. This will run: <code>./resample.sh | python scale.py | python harps_pds70.py | ./addalpha.sh | ./makeall.sh</code> in sequence.
-2. Run <code>python plotinput.py</code> to get two plots of the inputs.
+    'pds70b': {'d_pc': 113.4, 'R_star': 2.0 * R_jupiter,'halpha_flux': 8.1e-16},
+    'pds70c': {'d_pc': 113.4, 'R_star': 1.6 * R_jupiter,'halpha_flux': 3.1e-16},
+    'WISPIT2': {'d_pc': 133.0, 'R_star': 1.6 * R_jupiter,'halpha_flux': 1.38e-15},
+    '2MJ1612b': {'d_pc': 131.9, 'R_star': 1.5 * R_jupiter,'halpha_flux': 8.2e-16}
+
+3. Run <code>python plotinput.py</code> to get two plots of the inputs.
 
 ## RISTRETTO simulation procedure
 
