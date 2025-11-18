@@ -12,13 +12,53 @@ The file BHAC15_tracks+structure include tracks and some information on the inte
 (mass of the radiative core, gyration radii, central temperature and densities, etc...).
 
 ## RISTRETTO simulation procedure (Summary)
-1. Run ./run.sh. This will run: <code>./resample.sh | python scale.py | python harps_pds70.py | ./addalpha.sh | ./makeall.sh</code> in sequence.
-    > 'pds70b': {'d_pc': 113.4, 'R_star': 2.0 * R_jupiter,'halpha_flux': 8.1e-16},<br>
-    > 'pds70c': {'d_pc': 113.4, 'R_star': 1.6 * R_jupiter,'halpha_flux': 3.1e-16},<br>
-    > 'WISPIT2': {'d_pc': 133.0, 'R_star': 1.6 * R_jupiter,'halpha_flux': 1.38e-15},//
-    > '2MJ1612b': {'d_pc': 131.9, 'R_star': 1.5 * R_jupiter,'halpha_flux': 8.2e-16}
+1. Run ./run.sh. This will run: <code>./resample.sh | python scale.py | python harps_pds70.py | ./addalpha.sh | ./makeall.sh</code> in sequence. 
+2. Run <code>python plotinput.py</code> to get two plots of the inputs.
 
-3. Run <code>python plotinput.py</code> to get two plots of the inputs.
+### Some relevant parameters
+scale.py (scale Aoyama planetary H-alpha by flux)
+    > 'pds70b': {'d_pc': 113.4, 'R_planet': 2.0 * R_jupiter,'halpha_flux': 8.1e-16},<br>
+    > 'pds70c': {'d_pc': 113.4, 'R_planet': 1.6 * R_jupiter,'halpha_flux': 3.1e-16},<br>
+    > 'WISPIT2': {'d_pc': 133.0, 'R_planet': 1.6 * R_jupiter,'halpha_flux': 1.38e-15},<br>
+    > '2MJ1612b': {'d_pc': 131.9, 'R_planet': 1.5 * R_jupiter,'halpha_flux': 8.2e-16}
+makecsv.py
+Coupling:
+ > T_0 = 96.6e-2 # Atmosphere transmission lost
+ > T_1 = 61.2e-2 # Alluminium mirror coating
+ > T_2 = 68.1e-2   # Front-end optical transmission
+ > T_5 = 93.3e-2 # Raw Fiber Transmission
+ > T_6 = 95.5e-2 # 3d printed Lens Transmission
+ > T_7 = 43.9e-2 # Spectrograph efficiency
+ > partial_efficiency= T_0*T_1*T_2*T_5*T_6*T_7 * AO Coupling (from Nico)
+Object parameters:
+ > if "pds70_star" in fname_lower:
+ >     stellar_radius = 1.26 * sun_radius
+ >     stellar_distance = 113.4
+ >     radius_label = "1.26 R☉"
+ > elif "pds70b" in fname_lower:
+ >     stellar_radius = 2.0 * jupiter_radius
+ >     stellar_distance = 113.4
+ >     radius_label = "2.0 R_Jup"
+ > elif "pds70c" in fname_lower:
+ >     stellar_radius = 1.6 * jupiter_radius
+ >     stellar_distance = 113.4
+ >     radius_label = "1.6 R_Jup"
+ > elif "wispit2b" in fname_lower:
+ >     stellar_radius = 1.6 * jupiter_radius
+ >     stellar_distance = 133
+ >     radius_label = "1.6 R_Jup"
+ > elif "2mj1612b" in fname_lower:
+ >     stellar_radius = 1.5 * jupiter_radius
+ >     stellar_distance = 131.9
+ >     radius_label = "1.5 R_Jup"
+ > elif "2mj1612_star" in fname_lower:
+ >     stellar_radius = 1.2 * sun_radius
+ >     stellar_distance = 131.9
+ >     radius_label = "1.2 R☉"
+ > elif "wispit2_star" in fname_lower:
+ >     stellar_radius = 1.418 * sun_radius
+ >     stellar_distance = 133
+ >     radius_label = "1.418 R☉"
 
 ## RISTRETTO simulation procedure
 
