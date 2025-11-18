@@ -23,13 +23,13 @@ scale.py (scale Aoyama planetary H-alpha by flux)
     > '2MJ1612b': {'d_pc': 131.9, 'R_planet': 1.5 * R_jupiter,'halpha_flux': 8.2e-16}
 makecsv.py
 Coupling:
- > T_0 = 96.6e-2 # Atmosphere transmission lost
- > T_1 = 61.2e-2 # Alluminium mirror coating
- > T_2 = 68.1e-2   # Front-end optical transmission
- > T_5 = 93.3e-2 # Raw Fiber Transmission
- > T_6 = 95.5e-2 # 3d printed Lens Transmission
- > T_7 = 43.9e-2 # Spectrograph efficiency
- > partial_efficiency= T_0*T_1*T_2*T_5*T_6*T_7 * AO Coupling (from Nico)
+ > T_0 = 96.6e-2 # Atmosphere transmission lost<br>
+ > T_1 = 61.2e-2 # Alluminium mirror coating<br>
+ > T_2 = 68.1e-2   # Front-end optical transmission<br>
+ > T_5 = 93.3e-2 # Raw Fiber Transmission<br>
+ > T_6 = 95.5e-2 # 3d printed Lens Transmission<br>
+ > T_7 = 43.9e-2 # Spectrograph efficiency<br>
+ > partial_efficiency= T_0*T_1*T_2*T_5*T_6*T_7 * AO Coupling (from Nico)<br>
 Object parameters:
  > if "pds70_star" in fname_lower:<br>                  
  >     stellar_radius = 1.26 * sun_radius<br>         
