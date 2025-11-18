@@ -30,7 +30,7 @@ Coupling:
  > T_6 = 95.5e-2 # 3d printed Lens Transmission<br>
  > T_7 = 43.9e-2 # Spectrograph efficiency<br>
  > partial_efficiency= T_0*T_1*T_2*T_5*T_6*T_7 * AO Coupling (from Nico)<br>
-Object parameters:
+Object parameters:<br>
  > if "pds70_star" in fname_lower:<br>                  
  >     stellar_radius = 1.26 * sun_radius<br>         
  >     stellar_distance = 113.4 <br>
