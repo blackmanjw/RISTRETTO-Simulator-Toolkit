@@ -11,6 +11,10 @@ NOTE: Isochrones in different filters will be regularly added on this site.
 The file BHAC15_tracks+structure include tracks and some information on the internal structure
 (mass of the radiative core, gyration radii, central temperature and densities, etc...).
 
+## RISTRETTO simulation procedure (Summary)
+1. Run ./run.sh. This will run: <code>./resample.sh | python scale.py | python harps_pds70.py | ./addalpha.sh | ./makeall.sh</code> in sequence.
+2. Run <code>python plotinput.py</code> to get two plots of the inputs.
+
 ## RISTRETTO simulation procedure
 
 1. Download desired BT-Settl model (set temperature and log(g)) from https://svo2.cab.inta-csic.es/theory/newov2/index.php?models=bt-settl-cifist. If necessary use the baraffe_isochrone tool to determine the Teff and log(g) from the mass and age.
