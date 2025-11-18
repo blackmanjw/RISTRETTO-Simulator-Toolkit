@@ -31,34 +31,34 @@ Coupling:
  > T_7 = 43.9e-2 # Spectrograph efficiency
  > partial_efficiency= T_0*T_1*T_2*T_5*T_6*T_7 * AO Coupling (from Nico)
 Object parameters:
- > if "pds70_star" in fname_lower:
- >     stellar_radius = 1.26 * sun_radius
- >     stellar_distance = 113.4
- >     radius_label = "1.26 R☉"
- > elif "pds70b" in fname_lower:
- >     stellar_radius = 2.0 * jupiter_radius
- >     stellar_distance = 113.4
- >     radius_label = "2.0 R_Jup"
- > elif "pds70c" in fname_lower:
- >     stellar_radius = 1.6 * jupiter_radius
- >     stellar_distance = 113.4
- >     radius_label = "1.6 R_Jup"
- > elif "wispit2b" in fname_lower:
- >     stellar_radius = 1.6 * jupiter_radius
- >     stellar_distance = 133
- >     radius_label = "1.6 R_Jup"
- > elif "2mj1612b" in fname_lower:
- >     stellar_radius = 1.5 * jupiter_radius
- >     stellar_distance = 131.9
- >     radius_label = "1.5 R_Jup"
- > elif "2mj1612_star" in fname_lower:
- >     stellar_radius = 1.2 * sun_radius
- >     stellar_distance = 131.9
- >     radius_label = "1.2 R☉"
- > elif "wispit2_star" in fname_lower:
- >     stellar_radius = 1.418 * sun_radius
- >     stellar_distance = 133
- >     radius_label = "1.418 R☉"
+ > if "pds70_star" in fname_lower:<br>                  
+ >     stellar_radius = 1.26 * sun_radius<br>         
+ >     stellar_distance = 113.4 <br>
+ >     radius_label = "1.26 R☉" <br>
+ > elif "pds70b" in fname_lower:<br>
+ >     stellar_radius = 2.0 * jupiter_radius<br>
+ >     stellar_distance = 113.4<br>
+ >     radius_label = "2.0 R_Jup"<br>
+ > elif "pds70c" in fname_lower:<br>
+ >     stellar_radius = 1.6 * jupiter_radius<br>
+ >     stellar_distance = 113.4<br>
+ >     radius_label = "1.6 R_Jup"<br>
+ > elif "wispit2b" in fname_lower:<br>
+ >     stellar_radius = 1.6 * jupiter_radius<br>
+ >     stellar_distance = 133<br>
+ >     radius_label = "1.6 R_Jup"<br>
+ > elif "2mj1612b" in fname_lower:<br>
+ >     stellar_radius = 1.5 * jupiter_radius<br>
+ >     stellar_distance = 131.9<br>
+ >     radius_label = "1.5 R_Jup"<br>
+ > elif "2mj1612_star" in fname_lower:<br>
+ >     stellar_radius = 1.2 * sun_radius<br>
+ >     stellar_distance = 131.9<br>
+ >     radius_label = "1.2 R☉"<br>
+ > elif "wispit2_star" in fname_lower:<br>
+ >     stellar_radius = 1.418 * sun_radius<br>
+ >     stellar_distance = 133<br>
+ >     radius_label = "1.418 R☉"<br>
 
 ## RISTRETTO simulation procedure
 
