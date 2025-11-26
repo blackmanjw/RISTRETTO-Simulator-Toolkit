@@ -92,7 +92,7 @@ python makecsv.py WISPIT2_star_BT-Settl-CIFIST-4400K-4logg_140000.txt centralspa
 13. cp WISPIT2_star_0.45_3600s.fits, PDS70_star_0.45_3600s.fits, 2MJ1612_star_0.45_3600s.fits from offaxis to onaxis folders (this is for the star in the centre spaxel).
 14. To run the analysis, run <code>python analysis.py onaxis/PDS70b_star_plus_planet_Ha_60_12_3600s</code>. This will generate some csv files and png files in the analysis subdirectory. This defauilt to fiber 1 (the star for onaxis). You can specifc the fiber (ie. external spaxel) by running <code>python analysis.py onaxis/PDS70b_star_plus_planet_Ha_60_12_3600s 2 --show-plots</code>. The --show-plots flag can be used to plt.show() the plots when running. Otherwise this is supressed. You can run all the offaxis analysis with <code>./analysis_onaxis.sh</code>.
 15. 
-16. Run the interpretation code like <code>python interp2.py onaxis/PDS70b_star_plus_planet_Ha_60_12_3600s_fiber2_order117.csv --noise 6530 6550 6580 6605</code>. This will determine the signal-to-noise of the peak.
+16. Run the interpretation code like <code>python interp.py pds70b/8.1e-16/onaxis/pds70b_star_plus_planet_Ha_60_14_3600s_fiber2_order117.csv --noise 6538 6558 6570 6590</code>. This will determine the signal-to-noise of the peak and subtract the star. Run interp2.py first to determine the windows to calculate the noise.
 
 Command	Description
 python analysis.py onaxis/PDS70b_Ha_80_14_3600s 2	Normal single-file spectrum
