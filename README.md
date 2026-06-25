@@ -1,4 +1,5 @@
-# toolkit
+# RISTRETTO-Simulator-Toolkit
+These are a collection of scripts used to simulate performance on the RISTRETTO spectrograph using Pyechelle. This is used to determine future performance and determine detection limits when observing protoplanets emitting in H-alpha.
 
 ## baraffe_isochrone.py
 Output interpolated values for T_eff and logg from an input age and mass using the COND03_models.txt
@@ -99,9 +100,7 @@ Command	Description
 python analysis.py onaxis/PDS70b_Ha_80_14_3600s 2	Normal single-file spectrum
 python analysis.py onaxis/PDS70b_Ha_80_14_3600s 2 all	Plot all 4 Ha variants for that object
 python analysis.py plotall	Make 3 “all” plots (for WISPIT2b, PDS70b, 2MJ1612b) and then combine them into one figure with 3 subplots
-
-
-16. You can run Lovis original approximate simulation with <code>python simulation_lovis.py</code>. This requires the data in the harps_pds70 and Halpha_model subdirectories.
+18. You can run Lovis original approximate simulation with <code>python simulation_lovis.py</code>. This requires the data in the harps_pds70 and Halpha_model subdirectories.
 #### Also
 
 1. <code> python ao-coupling.py </code> is used to generate the adaptive optics coupling map for the different fibres (1,2, 3-7 averaged). For the off axis case we only consider Fibre 2. The output of this code is <code>ao-coupling/fibre_offaxis_vs_distance.txt</code>. This is read-in and interpolated when running makecsv.py with a specified separation.
